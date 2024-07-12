@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    tty: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/opt/srv/app
+  db:
+    image: postgres:16.2
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: gooo
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gooo_development
+volumes:
+  postgres:
+
