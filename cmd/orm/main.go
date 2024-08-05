@@ -34,7 +34,8 @@ var user = orm.Schema{
 			Name: "ID",
 			Type: orm.UUID,
 			Options: orm.FieldOptions{
-				Immutable: true,
+				Immutable:  true,
+				PrimaryKey: true,
 			},
 		},
 		{

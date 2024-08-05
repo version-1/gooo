@@ -2,6 +2,7 @@ package orm
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -31,7 +32,7 @@ func (obj *User) Scan(rows scanner) error {
 
 func (obj *User) Destroy(ctx context.Context, qr queryer) error {
 	if obj.ID == uuid.Nil {
-		return errors.New("primaryKey is required")
+		return ErrPrimaryKeyMissing
 	}
 
 	query := "DELETE FROM users WHERE id = $1"
@@ -44,13 +45,17 @@ func (obj *User) Destroy(ctx context.Context, qr queryer) error {
 
 func (obj *User) Find(ctx context.Context, qr queryer) error {
 	if obj.ID == uuid.Nil {
-		return errors.New("primaryKey is required")
+		return ErrPrimaryKeyMissing
 	}
 
 	query := "SELECT id, username, bio, email, created_at, updated_at FROM users WHERE id = $1"
 	row := qr.QueryRowContext(ctx, query, obj.ID)
 
 	if err := obj.Scan(row); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+
 		return err
 	}
 

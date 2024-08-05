@@ -14,3 +14,19 @@ type queryer interface {
 	QueryContext(ctx context.Context, query string, dest ...any) (*sql.Rows, error)
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 }
+
+type NotFoundError struct{}
+
+func (e NotFoundError) Error() string {
+	return "record not found"
+}
+
+var ErrNotFound = NotFoundError{}
+
+type PrimaryKeyMissingError struct{}
+
+func (e PrimaryKeyMissingError) Error() string {
+	return "primary key is required"
+}
+
+var ErrPrimaryKeyMissing = PrimaryKeyMissingError{}

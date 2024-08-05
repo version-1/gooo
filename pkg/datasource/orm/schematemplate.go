@@ -76,6 +76,26 @@ func (s SchemaCollection) Render() (string, error) {
 		"ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)",
 	})
 
+	str += "\n"
+
+	str += `type NotFoundError struct {}
+
+		func (e NotFoundError) Error() string {
+			return "record not found"
+		}
+
+		var ErrNotFound = NotFoundError{}`
+
+	str += "\n"
+
+	str += `type PrimaryKeyMissingError struct {}
+
+		func (e PrimaryKeyMissingError) Error() string {
+			return "primary key is required"
+		}
+
+		var ErrPrimaryKeyMissing = PrimaryKeyMissingError{}`
+
 	return pretify(s.Filename(), str)
 }
 
@@ -145,7 +165,7 @@ func (s SchemaTemplate) Render() (string, error) {
 			},
 			ReturnTypes: []string{"error"},
 			Body: fmt.Sprintf(`if obj.ID == uuid.Nil {
-			  return errors.New("primaryKey is required")
+			  return ErrPrimaryKeyMissing
 			}
 
 			query := "DELETE FROM %s WHERE id = $1"
@@ -164,13 +184,17 @@ func (s SchemaTemplate) Render() (string, error) {
 			},
 			ReturnTypes: []string{"error"},
 			Body: fmt.Sprintf(`if obj.ID == uuid.Nil {
-			  return errors.New("primaryKey is required")
+			  return ErrPrimaryKeyMissing
 			}
 
 			query := "SELECT %s FROM %s WHERE id = $1"
 			row := qr.QueryRowContext(ctx, query, obj.ID)
 
 			if err := obj.Scan(row); err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return ErrNotFound
+				}
+
 				return err
 			}
 
@@ -231,32 +255,6 @@ func (s SchemaTemplate) defineSave() string {
 			return nil`,
 			query,
 			strings.Join(mutableValues, ", "),
-		),
-	)
-}
-
-func (s SchemaTemplate) defineFind() string {
-	return s.defineMethod(
-		true,
-		"Find", []Arg{
-			{"ctx", "context.Context"},
-			{"qr", "queryer"},
-		},
-		[]string{"error"},
-		fmt.Sprintf(`if obj.ID == uuid.Nil {
-			  return errors.New("primaryKey is required")
-			}
-
-			query := "SELECT %s FROM %s WHERE id = $1"
-			row := qr.QueryRowContext(ctx, query, obj.ID)
-
-			if err := obj.Scan(row); err != nil {
-				return err
-			}
-
-			return nil`,
-			strings.Join(s.Schema.Columns(), ", "),
-			s.Schema.TableName,
 		),
 	)
 }
@@ -322,8 +320,6 @@ func (s SchemaTemplate) defineMethod(pointer bool, name string, args []Arg, retu
 
 func libs() []string {
 	list := []string{
-		"context",
-		"time",
 		"github.com/google/uuid",
 	}
 
