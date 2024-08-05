@@ -64,7 +64,7 @@ func (obj *User) Save(ctx context.Context, qr queryer) error {
 		RETURNING id, username, bio, email, created_at, updated_at
   `
 
-	row := qr.QueryRowContext(ctx, query, &obj.Username, &obj.Bio, &obj.Email)
+	row := qr.QueryRowContext(ctx, query, obj.Username, obj.Bio, obj.Email)
 	if err := obj.Scan(row); err != nil {
 		return err
 	}
