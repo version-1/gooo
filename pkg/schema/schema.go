@@ -169,6 +169,17 @@ func (s *Schema) MutableFieldKeys() []string {
 	return fields
 }
 
+func (s *Schema) AssociationFields() []Field {
+	fields := []Field{}
+	for i := range s.Fields {
+		if s.Fields[i].IsAssociation() {
+			fields = append(fields, s.Fields[i])
+		}
+	}
+
+	return fields
+}
+
 func (s *Schema) PrimaryKey() string {
 	for i := range s.Fields {
 		if s.Fields[i].Options.PrimaryKey {
@@ -210,14 +221,24 @@ func (f Field) IsImmutable() bool {
 	return f.Options.Immutable && !f.Options.Ignore
 }
 
+func (f Field) IsAssociation() bool {
+	return f.Options.Association != nil
+}
+
 type Validator struct {
 	Fields   []string
 	Validate validator.Validator
 }
 
+type Association struct {
+	Slice  bool
+	Schema Schema
+}
+
 type FieldOptions struct {
-	Immutable  bool
-	PrimaryKey bool
-	Ignore     bool // ignore fields for insert and update like fields of association.
-	Validators []Validator
+	Immutable   bool
+	PrimaryKey  bool
+	Ignore      bool // ignore fields for insert and update like fields of association.
+	Association *Association
+	Validators  []Validator
 }

@@ -155,6 +155,10 @@ func Run(dir string) error {
 		Type: schema.Slice(PostSchema.Type()),
 		Options: schema.FieldOptions{
 			Ignore: true,
+			Association: &schema.Association{
+				Schema: PostSchema,
+				Slice:  true,
+			},
 		},
 	})
 
@@ -163,6 +167,9 @@ func Run(dir string) error {
 		Type: UserSchema.Type(),
 		Options: schema.FieldOptions{
 			Ignore: true,
+			Association: &schema.Association{
+				Schema: UserSchema,
+			},
 		},
 	})
 

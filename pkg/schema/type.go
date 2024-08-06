@@ -4,6 +4,10 @@ import "fmt"
 
 type FieldType fmt.Stringer
 
+type Elementer interface {
+	Element() FieldType
+}
+
 type FieldValueType string
 
 func (f FieldValueType) String() string {
@@ -27,6 +31,10 @@ func (p ref) String() string {
 	return fmt.Sprintf("*%s", p.Type)
 }
 
+func (p ref) Element() FieldType {
+	return p.Type
+}
+
 func Ref(f FieldType) ref {
 	return ref{Type: f}
 }
@@ -37,6 +45,10 @@ type slice struct {
 
 func (s slice) String() string {
 	return fmt.Sprintf("[]%s", s.Type)
+}
+
+func (s slice) Element() FieldType {
+	return s.Type
 }
 
 func Slice(f FieldType) slice {
