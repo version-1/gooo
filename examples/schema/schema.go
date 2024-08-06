@@ -6,7 +6,7 @@ import (
 
 	"github.com/version-1/gooo/pkg/datasource/orm/errors"
 	"github.com/version-1/gooo/pkg/datasource/orm/validator"
-	"github.com/version-1/gooo/pkg/datasource/schema"
+	"github.com/version-1/gooo/pkg/schema"
 )
 
 var UserSchema = schema.Schema{

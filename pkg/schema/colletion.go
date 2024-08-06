@@ -8,7 +8,7 @@ import (
 )
 
 var errorsPackage = fmt.Sprintf("goooerrors \"%s\"", "github.com/version-1/gooo/pkg/datasource/orm/errors")
-var schemaPackage = "\"github.com/version-1/gooo/pkg/datasource/schema\""
+var schemaPackage = "\"github.com/version-1/gooo/pkg/schema\""
 
 type SchemaCollection struct {
 	URL     string

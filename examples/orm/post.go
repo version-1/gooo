@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	goooerrors "github.com/version-1/gooo/pkg/datasource/orm/errors"
-	"github.com/version-1/gooo/pkg/datasource/schema"
+	"github.com/version-1/gooo/pkg/schema"
 )
 
 type Post struct {
