@@ -5,6 +5,7 @@ import (
 	"go/format"
 	"strings"
 
+	"github.com/version-1/gooo/pkg/schema/internal/template"
 	"golang.org/x/tools/imports"
 )
 
@@ -33,16 +34,16 @@ func (s SchemaTemplate) Render() (string, error) {
 	str += s.defineModel()
 
 	// columns
-	str += s.defineMethod(
-		false,
-		"Columns",
-		[]Arg{},
-		[]string{"[]string"},
-		fmt.Sprintf(
+	str += template.Method{
+		Receiver:    s.Schema.Name,
+		Name:        "Columns",
+		Args:        []template.Arg{},
+		ReturnTypes: []string{"[]string"},
+		Body: fmt.Sprintf(
 			"return []string{%s}",
 			strings.Join(wrapQuote(s.Schema.Columns()), ", "),
 		),
-	)
+	}.String()
 
 	// scan
 	scanFields := []string{}
@@ -50,12 +51,13 @@ func (s SchemaTemplate) Render() (string, error) {
 		scanFields = append(scanFields, fmt.Sprintf("&obj.%s", f.Name))
 	}
 
-	methods := []Method{
+	receiver := template.Pointer(s.Schema.Name)
+	methods := []template.Method{
 		{
-			Pointer: true,
-			Name:    "Scan",
-			Args: []Arg{
-				{"rows", "scanner"},
+			Receiver: receiver,
+			Name:     "Scan",
+			Args: []template.Arg{
+				{Name: "rows", Type: "scanner"},
 			},
 			ReturnTypes: []string{"error"},
 			Body: fmt.Sprintf(`if err := rows.Scan(%s); err != nil {
@@ -67,11 +69,11 @@ func (s SchemaTemplate) Render() (string, error) {
 			),
 		},
 		{
-			Pointer: true,
-			Name:    "Destroy",
-			Args: []Arg{
-				{"ctx", "context.Context"},
-				{"qr", "queryer"},
+			Receiver: receiver,
+			Name:     "Destroy",
+			Args: []template.Arg{
+				{Name: "ctx", Type: "context.Context"},
+				{Name: "qr", Type: "queryer"},
 			},
 			ReturnTypes: []string{"error"},
 			Body: fmt.Sprintf(`if obj.ID == uuid.Nil {
@@ -86,11 +88,11 @@ func (s SchemaTemplate) Render() (string, error) {
 			return nil`, s.Schema.TableName),
 		},
 		{
-			Pointer: true,
-			Name:    "Find",
-			Args: []Arg{
-				{"ctx", "context.Context"},
-				{"qr", "queryer"},
+			Receiver: receiver,
+			Name:     "Find",
+			Args: []template.Arg{
+				{Name: "ctx", Type: "context.Context"},
+				{Name: "qr", Type: "queryer"},
 			},
 			ReturnTypes: []string{"error"},
 			Body: fmt.Sprintf(`if obj.ID == uuid.Nil {
@@ -116,7 +118,7 @@ func (s SchemaTemplate) Render() (string, error) {
 	}
 
 	for _, m := range methods {
-		str += s.defineMethod(m.Pointer, m.Name, m.Args, m.ReturnTypes, m.Body)
+		str += m.String()
 	}
 
 	str += s.defineSave()
@@ -124,14 +126,6 @@ func (s SchemaTemplate) Render() (string, error) {
 	str += s.defineValidate()
 
 	return pretify(s.Filename(), str)
-}
-
-type Method struct {
-	Pointer     bool
-	Name        string
-	Args        []Arg
-	ReturnTypes []string
-	Body        string
 }
 
 func (s SchemaTemplate) defineValidate() string {
@@ -162,13 +156,13 @@ func (s SchemaTemplate) defineValidate() string {
 
 	str += "return nil"
 
-	return s.defineMethod(
-		false,
-		"validate",
-		[]Arg{},
-		[]string{"goooerrors.ValidationError"},
-		str,
-	)
+	return template.Method{
+		Receiver:    s.Schema.Name,
+		Name:        "validate",
+		Args:        []template.Arg{},
+		ReturnTypes: []string{"goooerrors.ValidationError"},
+		Body:        str,
+	}.String()
 }
 
 func (s SchemaTemplate) defineSave() string {
@@ -193,14 +187,15 @@ func (s SchemaTemplate) defineSave() string {
 			}
 		`
 
-	return s.defineMethod(
-		true,
-		"Save", []Arg{
-			{"ctx", "context.Context"},
-			{"qr", "queryer"},
+	return template.Method{
+		Receiver: template.Pointer(s.Schema.Name),
+		Name:     "Save",
+		Args: []template.Arg{
+			{Name: "ctx", Type: "context.Context"},
+			{Name: "qr", Type: "queryer"},
 		},
-		[]string{"error"},
-		fmt.Sprintf(
+		ReturnTypes: []string{"error"},
+		Body: fmt.Sprintf(
 			validateStr+
 				"query := `%s`\n"+`
 			row := qr.QueryRowContext(ctx, query, %s)
@@ -212,7 +207,7 @@ func (s SchemaTemplate) defineSave() string {
 			query,
 			strings.Join(mutableValues, ", "),
 		),
-	)
+	}.String()
 }
 
 func (s SchemaTemplate) defineAssign() string {
@@ -221,24 +216,15 @@ func (s SchemaTemplate) defineAssign() string {
 		str += fmt.Sprintf("obj.%s = v.%s\n", f.Name, f.Name)
 	}
 
-	return s.defineMethod(
-		true,
-		"Assign", []Arg{
-			{"v", s.Schema.Name},
+	return template.Method{
+		Receiver: template.Pointer(s.Schema.Name),
+		Name:     "Assign",
+		Args: []template.Arg{
+			{Name: "v", Type: s.Schema.Name},
 		},
-		[]string{},
-		str,
-	)
-}
-
-func defineInterface(name string, inters []string) string {
-	str := fmt.Sprintf("type %s interface {\n", name)
-	for _, i := range inters {
-		str += fmt.Sprintf("\t%s\n", i)
-	}
-	str += "}\n"
-
-	return str
+		ReturnTypes: []string{},
+		Body:        str,
+	}.String()
 }
 
 func (s SchemaTemplate) defineModel() string {
@@ -254,39 +240,6 @@ func (s SchemaTemplate) defineModel() string {
 	for _, f := range s.Schema.IgnoredFields() {
 		str += f.String()
 	}
-	str += "}\n"
-	str += "\n"
-
-	return str
-}
-
-type Arg struct {
-	Name string
-	Type string
-}
-
-func (a Arg) String() string {
-	return fmt.Sprintf("%s %s", a.Name, a.Type)
-}
-
-func stringifyArgs(args []Arg) string {
-	str := []string{}
-	for _, a := range args {
-		str = append(str, a.String())
-	}
-
-	return strings.Join(str, ", ")
-}
-
-func (s SchemaTemplate) defineMethod(pointer bool, name string, args []Arg, returnTypes []string, body string) string {
-	receiver := s.Schema.Name
-	if pointer {
-		receiver = "*" + receiver
-	}
-
-	str := fmt.Sprintf("func (obj %s) %s (%s) (%s) {\n", receiver, name, stringifyArgs(args), strings.Join(returnTypes, ", "))
-	str += body
-	str += "\n"
 	str += "}\n"
 	str += "\n"
 

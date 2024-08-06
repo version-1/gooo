@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/version-1/gooo/pkg/generator"
+	"github.com/version-1/gooo/pkg/schema/internal/template"
 )
 
 var errorsPackage = fmt.Sprintf("goooerrors \"%s\"", "github.com/version-1/gooo/pkg/datasource/orm/errors")
@@ -78,22 +79,25 @@ func (s SchemaCollection) Render() (string, error) {
 	}
 	str += "\n"
 
-	str += defineInterface("scanner", []string{
-		"Scan(dest ...any) error",
-	})
+	str += template.Interface{
+		Name: "scanner",
+		Inters: []string{
+			"Scan(dest ...any) error",
+		},
+	}.String()
 
-	str += defineInterface("validatable", []string{
-		"Validate() goooerrors.ValidationError",
-	})
-
-	str += defineInterface("queryer", []string{
-		"QueryRowContext(ctx context.Context, query string, dest ...any) *sql.Row",
-		"QueryContext(ctx context.Context, query string, dest ...any) (*sql.Rows, error)",
-		"ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)",
-	})
+	str += template.Interface{
+		Name: "queryer",
+		Inters: []string{
+			"QueryRowContext(ctx context.Context, query string, dest ...any) *sql.Row",
+			"QueryContext(ctx context.Context, query string, dest ...any) (*sql.Rows, error)",
+			"ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)",
+		},
+	}.String()
 
 	str += "\n"
 
+	// errors
 	str += `type NotFoundError struct {}
 
 		func (e NotFoundError) Error() string {

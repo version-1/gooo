@@ -6,14 +6,10 @@ import (
 	"database/sql"
 
 	"github.com/version-1/gooo/examples/schema"
-	goooerrors "github.com/version-1/gooo/pkg/datasource/orm/errors"
 )
 
 type scanner interface {
 	Scan(dest ...any) error
-}
-type validatable interface {
-	Validate() goooerrors.ValidationError
 }
 type queryer interface {
 	QueryRowContext(ctx context.Context, query string, dest ...any) *sql.Row
