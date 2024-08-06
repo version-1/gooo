@@ -7,28 +7,38 @@ type FieldType fmt.Stringer
 type FieldValueType string
 
 func (f FieldValueType) String() string {
-	switch f {
-	case UUID:
-		return "uuid.UUID"
-	}
 	return string(f)
 }
 
 const (
-	UUID   FieldValueType = "uuid"
-	Int    FieldValueType = "int"
 	String FieldValueType = "string"
+	Int    FieldValueType = "int"
+	Bool   FieldValueType = "bool"
+	Byte   FieldValueType = "byte"
 	Time   FieldValueType = "time.Time"
+	UUID   FieldValueType = "uuid.UUID"
 )
 
-type Ptr struct {
+type ref struct {
 	Type FieldType
 }
 
-func (p Ptr) String() string {
+func (p ref) String() string {
 	return fmt.Sprintf("*%s", p.Type)
 }
 
-func Ref(f FieldType) Ptr {
-	return Ptr{Type: f}
+func Ref(f FieldType) ref {
+	return ref{Type: f}
+}
+
+type slice struct {
+	Type FieldType
+}
+
+func (s slice) String() string {
+	return fmt.Sprintf("[]%s", s.Type)
+}
+
+func Slice(f FieldType) slice {
+	return slice{Type: f}
 }

@@ -42,3 +42,8 @@ func NewUser() *User {
 		Schema: schema.UserSchema,
 	}
 }
+func NewPost() *Post {
+	return &Post{
+		Schema: schema.PostSchema,
+	}
+}

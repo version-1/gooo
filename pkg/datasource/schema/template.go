@@ -29,8 +29,8 @@ func (s SchemaTemplate) Render() (string, error) {
 	}
 	str += "\n"
 
-	// define type
-	str += s.defineStruct()
+	// define model
+	str += s.defineModel()
 
 	// columns
 	str += s.defineMethod(
@@ -46,7 +46,7 @@ func (s SchemaTemplate) Render() (string, error) {
 
 	// scan
 	scanFields := []string{}
-	for _, f := range s.Schema.Fields {
+	for _, f := range s.Schema.ColumnFields() {
 		scanFields = append(scanFields, fmt.Sprintf("&obj.%s", f.Name))
 	}
 
@@ -59,10 +59,10 @@ func (s SchemaTemplate) Render() (string, error) {
 			},
 			ReturnTypes: []string{"error"},
 			Body: fmt.Sprintf(`if err := rows.Scan(%s); err != nil {
-				return err
-			}
+					return err
+				}
 
-			return nil`,
+				return nil`,
 				strings.Join(scanFields, ", "),
 			),
 		},
@@ -241,16 +241,18 @@ func defineInterface(name string, inters []string) string {
 	return str
 }
 
-func (s SchemaTemplate) defineStruct() string {
+func (s SchemaTemplate) defineModel() string {
 	str := fmt.Sprintf("type %s struct {\n", s.Schema.Name)
 	str += "schema.Schema\n"
-	for _, f := range s.Schema.Fields {
-		field := fmt.Sprintf("\t%s %s", f.Name, f.Type)
-		if f.Tag != "" {
-			str += fmt.Sprintf("%s `%s`\n", field, f.Tag)
-		} else {
-			str += fmt.Sprintf("%s\n", field)
-		}
+	str += "// db related fields\n"
+	for _, f := range s.Schema.ColumnFields() {
+		str += f.String()
+	}
+
+	str += "\n"
+	str += "// non-db related fields\n"
+	for _, f := range s.Schema.IgnoredFields() {
+		str += f.String()
 	}
 	str += "}\n"
 	str += "\n"

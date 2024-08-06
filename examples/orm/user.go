@@ -13,12 +13,16 @@ import (
 
 type User struct {
 	schema.Schema
+	// db related fields
 	ID        uuid.UUID
 	Username  string
 	Bio       *string
 	Email     string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+
+	// non-db related fields
+	Posts []Post
 }
 
 func (obj User) Columns() []string {
@@ -90,6 +94,7 @@ func (obj *User) Assign(v User) {
 	obj.Email = v.Email
 	obj.CreatedAt = v.CreatedAt
 	obj.UpdatedAt = v.UpdatedAt
+	obj.Posts = v.Posts
 
 }
 

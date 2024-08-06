@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/version-1/gooo/pkg/datasource/orm"
 )
 
@@ -33,6 +34,10 @@ func (l *testLogger) Debugf(format string, args ...interface{}) {
 
 func (l *testLogger) Errorf(format string, args ...interface{}) {
 	l.messages = append(l.messages, []string{"error", fmt.Sprintf(format, args...)})
+}
+
+func TestValidaiton(t *testing.T) {
+	t.Skip("TODO:")
 }
 
 func TestUser(t *testing.T) {

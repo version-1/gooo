@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/version-1/gooo/pkg/datasource/orm/errors"
@@ -79,4 +80,105 @@ var UserSchema = schema.Schema{
 			},
 		},
 	},
+}
+
+var PostSchema = schema.Schema{
+	Name:      "Post",
+	TableName: "posts",
+	Fields: []schema.Field{
+		{
+			Name: "ID",
+			Type: schema.UUID,
+			Options: schema.FieldOptions{
+				PrimaryKey: true,
+				Immutable:  true,
+			},
+		},
+		{
+			Name: "UserID",
+			Type: schema.UUID,
+			Options: schema.FieldOptions{
+				Validators: []schema.Validator{
+					{
+						Validate: validator.Required,
+					},
+				},
+			},
+		},
+		{
+			Name: "Title",
+			Type: schema.String,
+			Options: schema.FieldOptions{
+				Validators: []schema.Validator{
+					{
+						Validate: validator.Required,
+					},
+				},
+			},
+		},
+		{
+			Name: "Body",
+			Type: schema.String,
+			Options: schema.FieldOptions{
+				Validators: []schema.Validator{
+					{
+						Validate: validator.Required,
+					},
+				},
+			},
+		},
+		{
+			Name:    "Status",
+			Type:    schema.String,
+			Options: schema.FieldOptions{},
+		},
+		{
+			Name: "CreatedAt",
+			Type: schema.Time,
+			Options: schema.FieldOptions{
+				Immutable: true,
+			},
+		},
+		{
+			Name: "UpdatedAt",
+			Type: schema.Time,
+			Options: schema.FieldOptions{
+				Immutable: true,
+			},
+		},
+	},
+}
+
+func Run(dir string) error {
+	UserSchema.AddFields(schema.Field{
+		Name: "Posts",
+		Type: schema.Slice(PostSchema.Type()),
+		Options: schema.FieldOptions{
+			Ignore: true,
+		},
+	})
+
+	PostSchema.AddFields(schema.Field{
+		Name: "User",
+		Type: UserSchema.Type(),
+		Options: schema.FieldOptions{
+			Ignore: true,
+		},
+	})
+
+	schemas := schema.SchemaCollection{
+		URL:     "github.com/version-1/gooo",
+		Package: filepath.Base(dir),
+		Dir:     dir,
+		Schemas: []schema.Schema{
+			UserSchema,
+			PostSchema,
+		},
+	}
+
+	if err := schemas.Gen(); err != nil {
+		return err
+	}
+
+	return nil
 }
