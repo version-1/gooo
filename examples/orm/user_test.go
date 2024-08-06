@@ -43,20 +43,23 @@ func TestUser(t *testing.T) {
 
 	o := orm.New(db, &testLogger{}, orm.Options{QueryLog: true})
 
-	u := &User{
+	u := NewUser()
+	u.Assign(User{
 		ID:       uuid.New(),
 		Username: "test",
-		Email:    "test@example.com",
-	}
+		Email:    "hoge@example.com",
+	})
 
 	ctx := context.Background()
 	if err := u.Save(ctx, o); err != nil {
 		t.Fatal(err)
 	}
 
-	u2 := &User{
-		ID: u.ID,
-	}
+	u2 := NewUser()
+	u2.Assign(
+		User{
+			ID: u.ID,
+		})
 
 	if err := u2.Find(ctx, o); err != nil {
 		t.Fatal(err)

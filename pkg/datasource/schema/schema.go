@@ -144,8 +144,8 @@ func (f Field) ColumnName() string {
 }
 
 type Validator struct {
-	Fields []string
-	Func   validator.Validator
+	Fields   []string
+	Validate validator.Validator
 }
 
 type FieldOptions struct {

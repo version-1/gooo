@@ -94,5 +94,25 @@ func (obj *User) Assign(v User) {
 }
 
 func (obj User) validate() goooerrors.ValidationError {
+	validator := obj.Schema.Fields[1].Options.Validators[0]
+	if err := validator.Validate("Username")(obj.Username); err != nil {
+		return err
+	}
+
+	validator = obj.Schema.Fields[1].Options.Validators[1]
+	if err := validator.Validate("Username")(obj.Username, obj.Email); err != nil {
+		return err
+	}
+
+	validator = obj.Schema.Fields[3].Options.Validators[0]
+	if err := validator.Validate("Email")(obj.Email); err != nil {
+		return err
+	}
+
+	validator = obj.Schema.Fields[3].Options.Validators[1]
+	if err := validator.Validate("Email")(obj.Email); err != nil {
+		return err
+	}
+
 	return nil
 }

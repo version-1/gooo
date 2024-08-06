@@ -135,8 +135,9 @@ type Method struct {
 }
 
 func (s SchemaTemplate) defineValidate() string {
-	fields := s.Schema.MutableFields()
+	fields := s.Schema.Fields
 	str := ""
+	index := 0
 	for i, f := range fields {
 		for j, validator := range f.Options.Validators {
 			values := []string{
@@ -146,12 +147,16 @@ func (s SchemaTemplate) defineValidate() string {
 				values = append(values, fmt.Sprintf("obj.%s", v))
 			}
 
-			str = fmt.Sprintf(`
-				validator := obj.Fields[%d].Validators[%d]
-				if err := validator.validate(%s)(obj.%s); err != nil {
+			if index == 0 {
+				str += fmt.Sprintf(`validator := obj.Schema.Fields[%d].Options.Validators[%d]`+"\n", i, j)
+			} else {
+				str += fmt.Sprintf(`validator = obj.Schema.Fields[%d].Options.Validators[%d]`+"\n", i, j)
+			}
+			str += fmt.Sprintf(`if err := validator.Validate("%s")(%s); err != nil {
 					return err
 				}
-				`+"\n\n", i, j, f.Name, strings.Join(values, ", "))
+				`+"\n\n", f.Name, strings.Join(values, ", "))
+			index++
 		}
 	}
 

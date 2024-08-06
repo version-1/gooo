@@ -40,7 +40,11 @@ func OneOf(values []fmt.Stringer) Validator {
 func Format(r *regexp.Regexp) Validator {
 	return func(k string) ValidatorFunc {
 		return func(v ...any) errors.ValidationError {
-			s := stringify(v)
+			if len(v) == 0 {
+				return nil
+			}
+
+			s := stringify(v[0])
 			if r.MatchString(s) {
 				return nil
 			}
