@@ -10,6 +10,8 @@ import (
 
 var errorsPackage = fmt.Sprintf("goooerrors \"%s\"", "github.com/version-1/gooo/pkg/datasource/orm/errors")
 var schemaPackage = "\"github.com/version-1/gooo/pkg/schema\""
+var stringsPackage = "gooostrings \"github.com/version-1/gooo/pkg/strings\""
+var jsonapiPackage = "\"github.com/version-1/gooo/pkg/presenter/jsonapi\""
 
 type SchemaCollection struct {
 	URL     string

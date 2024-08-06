@@ -4,10 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	goooerrors "github.com/version-1/gooo/pkg/datasource/orm/errors"
+	"github.com/version-1/gooo/pkg/presenter/jsonapi"
 	"github.com/version-1/gooo/pkg/schema"
 )
 
@@ -120,4 +123,46 @@ func (obj User) validate() goooerrors.ValidationError {
 	}
 
 	return nil
+}
+
+func (obj User) JSONAPISerialize() (string, error) {
+	lines := []string{
+		fmt.Sprintf("\"id\": %s", jsonapi.Stringify(obj.ID)),
+		fmt.Sprintf("\"username\": %s", jsonapi.Stringify(obj.Username)),
+		fmt.Sprintf("\"bio\": %s", jsonapi.Stringify(obj.Bio)),
+		fmt.Sprintf("\"email\": %s", jsonapi.Stringify(obj.Email)),
+		fmt.Sprintf("\"created_at\": %s", jsonapi.Stringify(obj.CreatedAt)),
+		fmt.Sprintf("\"updated_at\": %s", jsonapi.Stringify(obj.UpdatedAt)),
+	}
+	return fmt.Sprintf("{\n%s\n}", strings.Join(lines, ", \n")), nil
+}
+
+func (obj User) ToJSONAPIResource() (jsonapi.Resource, jsonapi.Resources) {
+	includes := &jsonapi.Resources{}
+	r := jsonapi.Resource{
+		ID:            jsonapi.Stringify(obj.ID),
+		Type:          "user",
+		Attributes:    obj,
+		Relationships: jsonapi.Relationships{},
+	}
+
+	relationships := jsonapi.RelationshipHasMany{}
+	for _, ele := range obj.Posts {
+		relationships.Data = append(
+			relationships.Data,
+			jsonapi.ResourceIdentifier{
+				ID:   jsonapi.Stringify(ele.ID),
+				Type: "post",
+			},
+		)
+
+		resource, childIncludes := ele.ToJSONAPIResource()
+		includes.Append(resource)
+		includes.Append(childIncludes.Data...)
+	}
+
+	if len(relationships.Data) > 0 {
+		r.Relationships["posts"] = relationships
+	}
+	return r, *includes
 }

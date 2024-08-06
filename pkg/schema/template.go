@@ -124,6 +124,8 @@ func (s SchemaTemplate) Render() (string, error) {
 	str += s.defineSave()
 	str += s.defineAssign()
 	str += s.defineValidate()
+	str += s.defineJSONAPISerialize()
+	str += s.defineToJSONAPIResource()
 
 	return pretify(s.Filename(), str)
 }
@@ -250,7 +252,12 @@ func (s SchemaTemplate) libs() []string {
 	list := []string{
 		schemaPackage,
 		errorsPackage,
+		stringsPackage,
+		jsonapiPackage,
 		"\"github.com/google/uuid\"",
+		"\"strings\"",
+		"\"time\"",
+		"\"fmt\"",
 		// fmt.Sprintf("schema \"%s/schema\"", s.URL),
 	}
 
@@ -266,6 +273,7 @@ func wrapQuote(list []string) []string {
 }
 
 func pretify(filename, s string) (string, error) {
+	// return s, nil
 	formatted, err := format.Source([]byte(s))
 	if err != nil {
 		return s, err
