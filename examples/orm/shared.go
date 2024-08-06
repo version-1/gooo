@@ -5,7 +5,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/version-1/gooo/examples/orm/schema"
+	"github.com/version-1/gooo/examples/schema"
 	goooerrors "github.com/version-1/gooo/pkg/datasource/orm/errors"
 )
 
