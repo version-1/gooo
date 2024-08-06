@@ -2,9 +2,7 @@ package orm
 
 import (
 	"fmt"
-	"reflect"
 
-	"github.com/version-1/gooo/pkg/datasource/orm/errors"
 	"github.com/version-1/gooo/pkg/datasource/orm/validator"
 	gooostrings "github.com/version-1/gooo/pkg/strings"
 )
@@ -124,26 +122,6 @@ func (s *Schema) MutableFieldKeys() []string {
 	return fields
 }
 
-func (s *Schema) Validate(data any) errors.ValidationError {
-	rv := reflect.ValueOf(data)
-	if rv.Kind() != reflect.Struct {
-		return errors.NewNotStructError(data)
-	}
-
-	for i := range s.Fields {
-		for j := range s.Fields[i].Options.Validators {
-			f := rv.FieldByName(s.Fields[i].Name)
-			v := f.Interface()
-
-			if err := s.Fields[i].Options.Validators[j](v); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
 func (s *Schema) PrimaryKey() string {
 	for i := range s.Fields {
 		if s.Fields[i].Options.PrimaryKey {
@@ -165,8 +143,13 @@ func (f Field) ColumnName() string {
 	return gooostrings.ToSnakeCase(f.Name)
 }
 
+type Validator struct {
+	Fields []string
+	Func   validator.Validator
+}
+
 type FieldOptions struct {
 	Immutable  bool
 	PrimaryKey bool
-	Validators []validator.ValidateFunc
+	Validators []Validator
 }

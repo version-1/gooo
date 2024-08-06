@@ -7,10 +7,11 @@ import (
 	"github.com/version-1/gooo/pkg/datasource/orm/errors"
 )
 
-type ValidateFunc func(v any) errors.ValidationError
+type Validator func(k string) ValidatorFunc
+type ValidatorFunc func(v ...any) errors.ValidationError
 
-func Required(k string) ValidateFunc {
-	return func(v any) errors.ValidationError {
+func Required(k string) ValidatorFunc {
+	return func(v ...any) errors.ValidationError {
 		if v == nil {
 			return errors.NewRequiredError(k)
 		}
@@ -18,6 +19,38 @@ func Required(k string) ValidateFunc {
 		return nil
 	}
 }
+
+func OneOf(values []fmt.Stringer) Validator {
+	return func(key string) ValidatorFunc {
+		return func(v ...any) errors.ValidationError {
+			for i := range values {
+				ele := values[i].String()
+				vv := stringify(v)
+
+				if ele != vv {
+					return errors.NewMustOneOfError(key, values, vv)
+				}
+			}
+
+			return nil
+		}
+	}
+}
+
+func Format(r *regexp.Regexp) Validator {
+	return func(k string) ValidatorFunc {
+		return func(v ...any) errors.ValidationError {
+			s := stringify(v)
+			if r.MatchString(s) {
+				return nil
+			}
+
+			return errors.NewFormatInvalidError(k, s)
+		}
+	}
+}
+
+var Email = Format(regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`))
 
 func stringify(v any) string {
 	switch vv := v.(type) {
@@ -29,31 +62,5 @@ func stringify(v any) string {
 		return vv.String()
 	default:
 		return fmt.Sprintf("%s", vv)
-	}
-}
-
-func OneOf(k string, values []fmt.Stringer) ValidateFunc {
-	return func(v any) errors.ValidationError {
-		for i := range values {
-			ele := values[i].String()
-			vv := stringify(v)
-
-			if ele != vv {
-				return errors.NewMustOneOfError(k, values, vv)
-			}
-		}
-
-		return nil
-	}
-}
-
-func Format(k string, r regexp.Regexp) ValidateFunc {
-	return func(v any) errors.ValidationError {
-		s := stringify(v)
-		if r.MatchString(s) {
-			return nil
-		}
-
-		return errors.NewFormatInvalidError(k, s)
 	}
 }

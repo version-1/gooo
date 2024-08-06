@@ -7,9 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/version-1/gooo/pkg/datasource/orm"
+	goooerrors "github.com/version-1/gooo/pkg/datasource/orm/errors"
 )
 
 type User struct {
+	orm.Schema
 	ID        uuid.UUID
 	Username  string
 	Bio       *string
@@ -63,6 +66,9 @@ func (obj *User) Find(ctx context.Context, qr queryer) error {
 }
 
 func (obj *User) Save(ctx context.Context, qr queryer) error {
+	if err := obj.validate(); err != nil {
+		return err
+	}
 	query := `
 		INSERT INTO users (username, bio, email) VALUES ($1, $2, $3)
 		ON CONFLICT(id) DO UPDATE SET username = $1, bio = $2, email = $3, updated_at = NOW()
@@ -74,5 +80,19 @@ func (obj *User) Save(ctx context.Context, qr queryer) error {
 		return err
 	}
 
+	return nil
+}
+
+func (obj *User) Assign(v User) {
+	obj.ID = v.ID
+	obj.Username = v.Username
+	obj.Bio = v.Bio
+	obj.Email = v.Email
+	obj.CreatedAt = v.CreatedAt
+	obj.UpdatedAt = v.UpdatedAt
+
+}
+
+func (obj User) validate() goooerrors.ValidationError {
 	return nil
 }

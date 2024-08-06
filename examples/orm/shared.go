@@ -4,10 +4,16 @@ package orm
 import (
 	"context"
 	"database/sql"
+
+	"github.com/version-1/gooo/examples/orm/schema"
+	goooerrors "github.com/version-1/gooo/pkg/datasource/orm/errors"
 )
 
 type scanner interface {
 	Scan(dest ...any) error
+}
+type validatable interface {
+	Validate() goooerrors.ValidationError
 }
 type queryer interface {
 	QueryRowContext(ctx context.Context, query string, dest ...any) *sql.Row
@@ -30,3 +36,9 @@ func (e PrimaryKeyMissingError) Error() string {
 }
 
 var ErrPrimaryKeyMissing = PrimaryKeyMissingError{}
+
+func NewUser() *User {
+	return &User{
+		Schema: schema.UserSchema,
+	}
+}
