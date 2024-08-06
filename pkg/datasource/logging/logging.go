@@ -114,3 +114,24 @@ func truncate(s any, n int) string {
 
 	return v
 }
+
+type MockLogger struct {
+	messages [][]string
+}
+
+func (l *MockLogger) Warnf(format string, args ...interface{}) {
+	l.messages = append(l.messages, []string{"warn", fmt.Sprintf(format, args...)})
+}
+
+func (l *MockLogger) Infof(format string, args ...interface{}) {
+	fmt.Printf(format, args...)
+	l.messages = append(l.messages, []string{"info", fmt.Sprintf(format, args...)})
+}
+
+func (l *MockLogger) Debugf(format string, args ...interface{}) {
+	l.messages = append(l.messages, []string{"debug", fmt.Sprintf(format, args...)})
+}
+
+func (l *MockLogger) Errorf(format string, args ...interface{}) {
+	l.messages = append(l.messages, []string{"error", fmt.Sprintf(format, args...)})
+}

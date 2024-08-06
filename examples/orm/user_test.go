@@ -2,7 +2,6 @@ package orm
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -10,31 +9,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/version-1/gooo/pkg/datasource/logging"
 	"github.com/version-1/gooo/pkg/datasource/orm"
 )
-
-type testLogger struct {
-	messages [][]string
-}
-
-var _ orm.Logger = &testLogger{}
-
-func (l *testLogger) Warnf(format string, args ...interface{}) {
-	l.messages = append(l.messages, []string{"warn", fmt.Sprintf(format, args...)})
-}
-
-func (l *testLogger) Infof(format string, args ...interface{}) {
-	fmt.Printf(format, args...)
-	l.messages = append(l.messages, []string{"info", fmt.Sprintf(format, args...)})
-}
-
-func (l *testLogger) Debugf(format string, args ...interface{}) {
-	l.messages = append(l.messages, []string{"debug", fmt.Sprintf(format, args...)})
-}
-
-func (l *testLogger) Errorf(format string, args ...interface{}) {
-	l.messages = append(l.messages, []string{"error", fmt.Sprintf(format, args...)})
-}
 
 func TestValidaiton(t *testing.T) {
 	t.Skip("TODO:")
@@ -46,7 +23,7 @@ func TestUser(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	o := orm.New(db, &testLogger{}, orm.Options{QueryLog: true})
+	o := orm.New(db, &logging.MockLogger{}, orm.Options{QueryLog: true})
 
 	u := NewUser()
 	u.Assign(User{
