@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/version-1/gooo/pkg/datasource/orm"
 	goooerrors "github.com/version-1/gooo/pkg/datasource/orm/errors"
+	"github.com/version-1/gooo/pkg/datasource/schema"
 )
 
 type User struct {
-	orm.Schema
+	schema.Schema
 	ID        uuid.UUID
 	Username  string
 	Bio       *string

@@ -1,45 +1,45 @@
 package schema
 
-import "github.com/version-1/gooo/pkg/datasource/orm"
+import "github.com/version-1/gooo/pkg/datasource/schema"
 
-var UserSchema = orm.Schema{
+var UserSchema = schema.Schema{
 	Name:      "User",
 	TableName: "users",
-	Fields: []orm.Field{
+	Fields: []schema.Field{
 		{
 			Name: "ID",
-			Type: orm.UUID,
-			Options: orm.FieldOptions{
+			Type: schema.UUID,
+			Options: schema.FieldOptions{
 				PrimaryKey: true,
 				Immutable:  true,
 			},
 		},
 		{
 			Name:    "Username",
-			Type:    orm.String,
-			Options: orm.FieldOptions{},
+			Type:    schema.String,
+			Options: schema.FieldOptions{},
 		},
 		{
 			Name:    "Bio",
-			Type:    orm.Ref(orm.String),
-			Options: orm.FieldOptions{},
+			Type:    schema.Ref(schema.String),
+			Options: schema.FieldOptions{},
 		},
 		{
 			Name:    "Email",
-			Type:    orm.String,
-			Options: orm.FieldOptions{},
+			Type:    schema.String,
+			Options: schema.FieldOptions{},
 		},
 		{
 			Name: "CreatedAt",
-			Type: orm.Time,
-			Options: orm.FieldOptions{
+			Type: schema.Time,
+			Options: schema.FieldOptions{
 				Immutable: true,
 			},
 		},
 		{
 			Name: "UpdatedAt",
-			Type: orm.Time,
-			Options: orm.FieldOptions{
+			Type: schema.Time,
+			Options: schema.FieldOptions{
 				Immutable: true,
 			},
 		},

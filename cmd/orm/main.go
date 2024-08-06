@@ -5,20 +5,20 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/version-1/gooo/examples/orm/schema"
-	"github.com/version-1/gooo/pkg/datasource/orm"
+	exampleschema "github.com/version-1/gooo/examples/orm/schema"
+	goooschema "github.com/version-1/gooo/pkg/datasource/schema"
 )
 
 func main() {
 	args := os.Args[1:]
 
 	dirpath := args[0]
-	schema := orm.SchemaCollection{
+	schema := goooschema.SchemaCollection{
 		URL:     "github.com/version-1/gooo",
 		Dir:     dirpath,
 		Package: filepath.Base(dirpath),
-		Schemas: []orm.Schema{
-			schema.UserSchema,
+		Schemas: []goooschema.Schema{
+			exampleschema.UserSchema,
 		},
 	}
 
