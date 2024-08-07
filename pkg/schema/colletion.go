@@ -127,6 +127,18 @@ func (s SchemaCollection) Render() (string, error) {
 				}
     }
   `, schema.Name, schema.Name, schema.Name, schema.Name)
+		str += "\n"
+
+		str += fmt.Sprintf(`func New%sWith(obj %s) *%s {
+				m := &%s{
+					Schema: schema.%sSchema,
+				}
+				m.Assign(obj)
+
+				return m
+    }
+  `, schema.Name, schema.Name, schema.Name, schema.Name, schema.Name)
+		str += "\n"
 	}
 
 	return pretify(s.Filename(), str)

@@ -213,9 +213,9 @@ func (s SchemaTemplate) defineSave() string {
 }
 
 func (s SchemaTemplate) defineAssign() string {
-	str := ""
+	fields := []string{}
 	for _, f := range s.Schema.Fields {
-		str += fmt.Sprintf("obj.%s = v.%s\n", f.Name, f.Name)
+		fields = append(fields, fmt.Sprintf("obj.%s = v.%s", f.Name, f.Name))
 	}
 
 	return template.Method{
@@ -225,7 +225,7 @@ func (s SchemaTemplate) defineAssign() string {
 			{Name: "v", Type: s.Schema.Name},
 		},
 		ReturnTypes: []string{},
-		Body:        str,
+		Body:        strings.Join(fields, "\n"),
 	}.String()
 }
 

@@ -1,4 +1,4 @@
-package orm
+package models
 
 import (
 	"encoding/json"
@@ -118,7 +118,6 @@ func TestResourcesSerialize(t *testing.T) {
 }
 
 func TestResourceSerialize(t *testing.T) {
-	u := NewUser()
 	now, err := time.Parse(time.RFC3339, "2024-08-07T01:58:13+00:00")
 	if err != nil {
 		t.Fatal(err)
@@ -127,16 +126,14 @@ func TestResourceSerialize(t *testing.T) {
 	uid := uuid.MustParse("4018be75-e855-489d-a151-ddb8fc3fd2dc")
 	p1 := uuid.MustParse("ccf7a495-ec22-4358-bccd-d77bec8ee037")
 	p2 := uuid.MustParse("f7b1b3b4-3b3b-4b3b-8b3b-3b3b3b3b3b3b")
-	uu := NewUser()
-	uu.Assign(User{
+	uu := NewUserWith(User{
 		ID:        uid,
 		Username:  "test",
 		Email:     "test@example.com",
 		CreatedAt: now,
 		UpdatedAt: now,
 	})
-
-	u.Assign(User{
+	u := NewUserWith(User{
 		ID:        uid,
 		Username:  "test",
 		Email:     "test@example.com",
@@ -165,6 +162,7 @@ func TestResourceSerialize(t *testing.T) {
 			},
 		},
 	})
+
 	resource, includes := u.ToJSONAPIResource()
 
 	root := jsonapi.New(resource, includes, nil)
