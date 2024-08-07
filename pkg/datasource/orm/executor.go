@@ -34,7 +34,7 @@ func (e *Executor) queryRunner() QueryRunner {
 		return e.tx
 	}
 
-	return e.Orm.OrmFactory.DB
+	return e.Orm
 }
 
 func (e *Executor) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {

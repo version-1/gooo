@@ -8,6 +8,8 @@ import (
 	"github.com/version-1/gooo/pkg/datasource/logging"
 )
 
+var _ Logger = &logging.MockLogger{}
+
 type QueryRunner interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
@@ -25,53 +27,27 @@ type Options struct {
 	QueryLog bool
 }
 
-type OrmFactory struct {
-	*sqlx.DB
+type Orm struct {
+	db      *sqlx.DB
 	logger  Logger
 	ql      *logging.QueryLogger
 	options Options
 }
 
-func NewOrmFactory(db *sqlx.DB, logger Logger, options Options) *OrmFactory {
+func New(db *sqlx.DB, logger Logger, options Options) *Orm {
 	ql := logging.NewQueryLogger(logger)
-
-	return &OrmFactory{
-		DB:      db,
+	o := &Orm{
+		db:      db,
 		logger:  logger,
 		ql:      ql,
 		options: options,
 	}
+
+	return o
 }
 
-func (f *OrmFactory) New(m Schema) *Orm {
-	return &Orm{
-		OrmFactory: f,
-		m:          m,
-	}
-}
-
-type Orm struct {
-	*OrmFactory
-	m Schema
-}
-
-//	func (o *Orm) Create(ctx context.Context, m Model) error {
-//		return create(ctx, o, m)
-//	}
-//
-//	func (o *Orm) Find(ctx context.Context, m Model) error {
-//		return find(ctx, o, m)
-//	}
-//
-//	func (o *Orm) Update(ctx context.Context, m Model) error {
-//		return update(ctx, o, m)
-//	}
-//
-//	func (o *Orm) Delete(ctx context.Context, m Model) error {
-//		return delete(ctx, o, m)
-//	}
 func (o *Orm) Transaction(ctx context.Context, fn func(*Executor) error) error {
-	tx, err := o.DB.BeginTx(ctx, nil)
+	tx, err := o.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -86,6 +62,24 @@ func (o *Orm) Transaction(ctx context.Context, fn func(*Executor) error) error {
 	}
 
 	return tx.Commit()
+}
+
+func (o Orm) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	o.LogQuery(query, args)
+
+	return o.db.QueryRowContext(ctx, query, args...)
+}
+
+func (o Orm) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	o.LogQuery(query, args)
+
+	return o.db.ExecContext(ctx, query, args...)
+}
+
+func (o Orm) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	o.LogQuery(query, args)
+
+	return o.db.QueryContext(ctx, query, args...)
 }
 
 func (o Orm) LogQuery(query string, args []any) {

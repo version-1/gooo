@@ -17,7 +17,7 @@ type QueryLogger struct {
 
 func (l QueryLogger) Info(query string, args ...any) {
 	s := renderQuery(query, args...)
-	l.driver.Infof("Query: %s\n Args: %s\n", s, args)
+	l.driver.Infof("Query: %s\n Args: %s\n", s, resolveArgs(args))
 }
 
 func NewQueryLogger(driver driver) *QueryLogger {
@@ -46,6 +46,10 @@ func stringifySlice(slice any) string {
 		switch v := s.(type) {
 		case fmt.Stringer:
 			res = append(res, fmt.Sprintf("'%s'", truncate(v.String(), defaultTruncate)))
+		case nil:
+			res = append(res, "nil")
+		case *string:
+			res = append(res, fmt.Sprintf("'%s'", truncate(*v, defaultTruncate)))
 		case int:
 			res = append(res, strconv.Itoa(v))
 		default:
@@ -56,14 +60,27 @@ func stringifySlice(slice any) string {
 	return "ARRAY[" + strings.Join(res, ", ") + "]"
 }
 
+func resolveArgs(args []any) []any {
+	res := make([]any, len(args))
+	for i, arg := range args {
+		tmpl, v := resolveAny(arg)
+		res[i] = fmt.Sprintf(tmpl, v)
+	}
+
+	return res
+}
+
 func resolveAny(a any) (string, any) {
 	tmpl := "%s"
 	var value any
 	switch v := a.(type) {
-	case bool:
+	case nil:
+		tmpl = "%s"
+		value = "null"
+	case bool, *bool:
 		tmpl = "%t"
 		value = v
-	case int:
+	case int, *int:
 		tmpl = "%d"
 		value = v
 	case []string:
@@ -72,6 +89,15 @@ func resolveAny(a any) (string, any) {
 	case fmt.Stringer, string:
 		tmpl = "'%s'"
 		value = truncate(v, defaultTruncate)
+	case *string:
+		if v == nil {
+			tmpl = "%s"
+			value = "null"
+			return tmpl, value
+		}
+
+		tmpl = "'%s'"
+		value = truncate(*v, defaultTruncate)
 	default:
 		tmpl = "%s"
 		value = truncate(v, defaultTruncate)
@@ -87,4 +113,25 @@ func truncate(s any, n int) string {
 	}
 
 	return v
+}
+
+type MockLogger struct {
+	messages [][]string
+}
+
+func (l *MockLogger) Warnf(format string, args ...interface{}) {
+	l.messages = append(l.messages, []string{"warn", fmt.Sprintf(format, args...)})
+}
+
+func (l *MockLogger) Infof(format string, args ...interface{}) {
+	fmt.Printf(format, args...)
+	l.messages = append(l.messages, []string{"info", fmt.Sprintf(format, args...)})
+}
+
+func (l *MockLogger) Debugf(format string, args ...interface{}) {
+	l.messages = append(l.messages, []string{"debug", fmt.Sprintf(format, args...)})
+}
+
+func (l *MockLogger) Errorf(format string, args ...interface{}) {
+	l.messages = append(l.messages, []string{"error", fmt.Sprintf(format, args...)})
 }

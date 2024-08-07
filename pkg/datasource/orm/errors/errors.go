@@ -2,8 +2,22 @@ package errors
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
+
+type DefaultValidationError struct {
+	key string
+	err error
+}
+
+func (d DefaultValidationError) Key() string {
+	return d.key
+}
+
+func (d DefaultValidationError) Error() string {
+	return d.err.Error()
+}
 
 var PointerModelExpectedErr = PointerModelExpectedError{}
 
@@ -24,10 +38,15 @@ type ValidationError interface {
 	Error() string
 }
 
+var _ ValidationError = &DefaultValidationError{}
 var _ ValidationError = &NotStructError{}
 var _ ValidationError = &FormatInvalidError{}
 var _ ValidationError = &RequiredError{}
 var _ ValidationError = &MustOneOfError{}
+
+func NewValidationError(key string, v string) ValidationError {
+	return DefaultValidationError{key, errors.New(v)}
+}
 
 func NewFormatInvalidError(key string, v string) *FormatInvalidError {
 	return &FormatInvalidError{key: key, v: v}
