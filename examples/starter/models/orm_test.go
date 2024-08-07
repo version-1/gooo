@@ -1,4 +1,4 @@
-package orm
+package models
 
 import (
 	"context"
@@ -17,7 +17,7 @@ func TestValidaiton(t *testing.T) {
 	t.Skip("TODO:")
 }
 
-func TestUser(t *testing.T) {
+func TestCRUD(t *testing.T) {
 	db, err := sqlx.Connect("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalln(err)
@@ -25,8 +25,7 @@ func TestUser(t *testing.T) {
 
 	o := orm.New(db, &logging.MockLogger{}, orm.Options{QueryLog: true})
 
-	u := NewUser()
-	u.Assign(User{
+	u := NewUserWith(User{
 		ID:       uuid.New(),
 		Username: "test",
 		Email:    "hoge@example.com",
@@ -37,11 +36,9 @@ func TestUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	u2 := NewUser()
-	u2.Assign(
-		User{
-			ID: u.ID,
-		})
+	u2 := NewUserWith(User{
+		ID: u.ID,
+	})
 
 	if err := u2.Find(ctx, o); err != nil {
 		t.Fatal(err)

@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type Generator struct {
@@ -17,7 +18,7 @@ type Template interface {
 
 func (g Generator) Run() error {
 	tmpl := g.Template
-	filename := fmt.Sprintf("%s/%s.go", g.Dir, tmpl.Filename())
+	filename := filepath.Clean(fmt.Sprintf("%s/%s.go", g.Dir, tmpl.Filename()))
 	fmt.Println("Generating: ", filename)
 	s, err := g.Template.Render()
 	if err != nil {

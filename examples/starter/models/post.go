@@ -1,4 +1,4 @@
-package orm
+package models
 
 import (
 	"context"
@@ -100,7 +100,6 @@ func (obj *Post) Assign(v Post) {
 	obj.CreatedAt = v.CreatedAt
 	obj.UpdatedAt = v.UpdatedAt
 	obj.User = v.User
-
 }
 
 func (obj Post) validate() goooerrors.ValidationError {

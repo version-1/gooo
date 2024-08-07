@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/version-1/gooo/examples/schema"
+	"github.com/version-1/gooo/examples/starter/schema"
 )
 
 func main() {
