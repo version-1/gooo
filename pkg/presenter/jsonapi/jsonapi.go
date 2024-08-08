@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -14,7 +15,7 @@ type Resourcer interface {
 
 type Root[T Serializer] struct {
 	Data     T
-	Errors   Errors
+	Errors   ErrorSerializers
 	Meta     Serializer
 	Included Resources
 }
@@ -47,10 +48,11 @@ func NewManyFrom[T Resourcer](list []T, meta Serializer) *Root[Resources] {
 	return NewMany(*resources, *includes, meta)
 }
 
-func NewErrors(errors Errors) *Root[Nil] {
+func NewErrors(errors []ErrorSerializer, meta Serializer) *Root[Nil] {
 	return &Root[Nil]{
 		Data:   Nil{},
-		Errors: errors,
+		Errors: ErrorSerializers(errors),
+		Meta:   meta,
 	}
 }
 
@@ -61,31 +63,46 @@ func (j Root[T]) Serialize() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fields = append(fields, fmt.Sprintf("\"data\": %s", data))
+
+	d := strings.TrimSpace(data)
+	if !isEmptyJSON(d) {
+		fields = append(fields, fmt.Sprintf("\"data\": %s", d))
+	}
 
 	if j.Meta != nil {
 		meta, err := j.Meta.JSONAPISerialize()
 		if err != nil {
 			return "", err
 		}
-		fields = append(fields, fmt.Sprintf("\"meta\": %s", meta))
+
+		d := strings.TrimSpace(meta)
+		fields = append(fields, fmt.Sprintf("\"meta\": %s", d))
 	}
 
-	errors, err := j.Errors.JSONAPISerialize()
-	if err != nil {
-		return "", err
-	}
-	fields = append(fields, fmt.Sprintf("\"errors\": %s", errors))
-	included, err := j.Included.JSONAPISerialize()
-	if err != nil {
-		return "", err
-	}
-	fields = append(fields, fmt.Sprintf("\"included\": %s", included))
+	if len(j.Errors) > 0 {
+		errors, err := j.Errors.JSONAPIErrorSerialize()
+		if err != nil {
+			return "", err
+		}
 
-	s := fmt.Sprintf("{\n%s\n}", strings.Join(fields, ", \n"))
+		d = strings.TrimSpace(errors)
+		fields = append(fields, fmt.Sprintf("\"errors\": %s", d))
+	}
+
+	if len(j.Included.Data) > 0 {
+		included, err := j.Included.JSONAPISerialize()
+		if err != nil {
+			return "", err
+		}
+
+		d = strings.TrimSpace(included)
+		fields = append(fields, fmt.Sprintf("\"included\": %s", d))
+	}
+
+	s := fmt.Sprintf("{\n%s\n}", strings.Join(fields, ",\n"))
 
 	var out bytes.Buffer
-	if err := json.Indent(&out, []byte(s), "", "\t"); err != nil {
+	if err := json.Indent(&out, []byte(s), "", "  "); err != nil {
 		return "", err
 	}
 
@@ -94,9 +111,9 @@ func (j Root[T]) Serialize() (string, error) {
 
 var _ Serializer = Resource{}
 var _ Serializer = Resources{}
-var _ Serializer = Errors{}
 var _ Serializer = Error{}
 var _ Serializer = Serializers{}
+var _ Serializer = ErrorSerializers{}
 
 type Serializer interface {
 	JSONAPISerialize() (string, error)
@@ -259,20 +276,27 @@ func (j ResourceIdentifier) JSONAPISerialize() (string, error) {
 	}`, nil
 }
 
-type Errors []Error
+type ErrorSerializer interface {
+	JSONAPIErrorSerialize() (string, error)
+}
 
-func (j Errors) JSONAPISerialize() (string, error) {
-	str := "["
+type ErrorSerializers []ErrorSerializer
+
+func (j ErrorSerializers) JSONAPISerialize() (string, error) {
+	elements := []string{}
 	for _, e := range j {
-		json, err := e.JSONAPISerialize()
+		json, err := e.JSONAPIErrorSerialize()
 		if err != nil {
 			return "", err
 		}
-		str += json + ","
+		elements = append(elements, json)
 	}
-	str += "]"
 
-	return str, nil
+	return renderList(elements), nil
+}
+
+func (j ErrorSerializers) JSONAPIErrorSerialize() (string, error) {
+	return j.JSONAPISerialize()
 }
 
 type Error struct {
@@ -283,20 +307,51 @@ type Error struct {
 	Detail string
 }
 
+func (j Error) JSONAPIErrorSerialize() (string, error) {
+	return ObjectBuilder{}.Append(
+		NewField("id", j.ID),
+		NewField("title", j.Title),
+		NewField("code", j.Code),
+		NewField("status", strconv.Itoa(j.Status)),
+		NewField("detail", j.Detail),
+	).String(), nil
+}
+
+func (j Error) JSONAPISerialize() (string, error) {
+	return j.JSONAPIErrorSerialize()
+}
+
+var _ error = ErrorWrapper{}
+var _ ErrorSerializer = ErrorWrapper{}
+
+type ErrorWrapper struct {
+	Err    error
+	ID     string
+	Title  string
+	Code   string
+	Status int
+}
+
+func (e ErrorWrapper) JSONAPIErrorSerialize() (string, error) {
+	return Error{
+		ID:     e.ID,
+		Title:  e.Title,
+		Code:   e.Code,
+		Status: e.Status,
+		Detail: e.Detail(),
+	}.JSONAPIErrorSerialize()
+}
+
+func (e ErrorWrapper) Error() string {
+	return e.Err.Error()
+}
+
+func (e ErrorWrapper) Detail() string {
+	return e.Error()
+}
+
 type Nil struct{}
 
 func (n Nil) JSONAPISerialize() (string, error) {
 	return "null", nil
-}
-
-func (j Error) JSONAPISerialize() (string, error) {
-	fields := []string{
-		fmt.Sprintf("\"id\": %s", Stringify(j.ID)),
-		fmt.Sprintf("\"status\": %s", Stringify(j.Status)),
-		fmt.Sprintf("\"code\": %s", Stringify(j.Code)),
-		fmt.Sprintf("\"title\": %s", Stringify(j.Title)),
-		fmt.Sprintf("\"detail\": %s", Stringify(j.Detail)),
-	}
-
-	return fmt.Sprintf("{\n%s\n}", strings.Join(fields, ", \n")), nil
 }

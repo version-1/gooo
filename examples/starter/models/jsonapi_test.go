@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -102,14 +103,12 @@ func TestResourcesSerialize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected, err := ioutil.ReadFile("./fixtures/test_resources_serialize.json")
+	expected, err := os.ReadFile("./fixtures/test_resources_serialize.json")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expectedStr := strings.ReplaceAll(string(expected), "  ", "\t")
-	// trailing newline
-	expectedStr = string(expectedStr[0 : len(expectedStr)-1])
+	expectedStr := strings.TrimSpace(string(expected))
 
 	if err := diff(expectedStr, s); err != nil {
 		fmt.Printf("expect %s\n\n got %s", expectedStr, s)
@@ -172,14 +171,12 @@ func TestResourceSerialize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected, err := ioutil.ReadFile("./fixtures/test_resource_serialize.json")
+	expected, err := os.ReadFile("./fixtures/test_resource_serialize.json")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expectedStr := strings.ReplaceAll(string(expected), "  ", "\t")
-	// trailing newline
-	expectedStr = string(expectedStr[0 : len(expectedStr)-1])
+	expectedStr := strings.TrimSpace(string(expected))
 
 	if err := diff(expectedStr, s); err != nil {
 		fmt.Printf("expect %s\n\n got %s", expectedStr, s)
@@ -216,4 +213,48 @@ func diff(expected, got string) error {
 	}
 
 	return nil
+}
+
+func TestErrorsSerialize(t *testing.T) {
+	errs := []jsonapi.ErrorSerializer{
+		jsonapi.ErrorWrapper{
+			ID:     "1",
+			Err:    errors.New("error1"),
+			Title:  "Error1",
+			Code:   "error1",
+			Status: http.StatusInternalServerError,
+		},
+		jsonapi.ErrorWrapper{
+			ID:     "2",
+			Err:    errors.New("error2"),
+			Title:  "Error2",
+			Code:   "error2",
+			Status: http.StatusBadRequest,
+		},
+		jsonapi.ErrorWrapper{
+			ID:     "3",
+			Err:    errors.New("error3"),
+			Title:  "Error3",
+			Code:   "error3",
+			Status: http.StatusUnauthorized,
+		},
+	}
+
+	root := jsonapi.NewErrors(errs, nil)
+	s, err := root.Serialize()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected, err := os.ReadFile("./fixtures/test_errors_serialize.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedStr := strings.TrimSpace(string(expected))
+
+	if err := diff(expectedStr, s); err != nil {
+		fmt.Printf("expect %s\n\n got %s", expectedStr, s)
+		t.Fatal(err)
+	}
 }

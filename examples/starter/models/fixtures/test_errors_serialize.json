@@ -1,0 +1,25 @@
+{
+  "errors": [
+    {
+      "id": "1",
+      "title": "Error1",
+      "code": "error1",
+      "status": "500",
+      "detail": "error1"
+    },
+    {
+      "id": "2",
+      "title": "Error2",
+      "code": "error2",
+      "status": "400",
+      "detail": "error2"
+    },
+    {
+      "id": "3",
+      "title": "Error3",
+      "code": "error3",
+      "status": "401",
+      "detail": "error3"
+    }
+  ]
+}
