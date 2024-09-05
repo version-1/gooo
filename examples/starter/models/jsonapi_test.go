@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -102,7 +102,7 @@ func TestResourcesSerialize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected, err := ioutil.ReadFile("./fixtures/test_resources_serialize.json")
+	expected, err := os.ReadFile("./fixtures/test_resources_serialize.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +172,7 @@ func TestResourceSerialize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected, err := ioutil.ReadFile("./fixtures/test_resource_serialize.json")
+	expected, err := os.ReadFile("./fixtures/test_resource_serialize.json")
 	if err != nil {
 		t.Fatal(err)
 	}
