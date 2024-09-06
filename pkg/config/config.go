@@ -5,8 +5,16 @@ import (
 )
 
 type App struct {
-	Logger logger.Logger
+	Logger                  logger.Logger
+	DefaultResponseRenderer string
 }
+
+type ResponseRenderer string
+
+const (
+	JSONAPIRenderer ResponseRenderer = "jsonapi"
+	RawRenderer     ResponseRenderer = "raw"
+)
 
 func (c App) GetLogger() logger.Logger {
 	if c.Logger == nil {

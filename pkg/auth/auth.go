@@ -7,6 +7,7 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/version-1/gooo/pkg/controller"
+	"github.com/version-1/gooo/pkg/http/response"
 )
 
 type JWTAuth[T any] struct {
@@ -38,7 +39,7 @@ func (a JWTAuth[T]) Sign(r *controller.Request) (string, error) {
 func (a JWTAuth[T]) Guard() controller.Middleware {
 	return controller.Middleware{
 		If: a.If,
-		Do: func(w *controller.Response, r *controller.Request) bool {
+		Do: func(w *response.Response, r *controller.Request) bool {
 			str := r.Header.Get("Authorization")
 			token := strings.TrimSpace(strings.ReplaceAll(str, "Bearer ", ""))
 			t, err := jwt.ParseWithClaims(token, &jwt.RegisteredClaims{}, func(t *jwt.Token) (any, error) {
@@ -80,7 +81,7 @@ func (a JWTAuth[T]) Guard() controller.Middleware {
 	}
 }
 
-func reportError(w *controller.Response, e error) {
+func reportError(w *response.Response, e error) {
 	w.Unauthorized().JSON(
 		map[string]string{
 			"code":   "unauthorized",

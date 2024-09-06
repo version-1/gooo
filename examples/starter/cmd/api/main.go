@@ -61,6 +61,7 @@ func main() {
 	s.WalkThrough(func(h controller.Handler) {
 		fmt.Fprint(w, logger.DefaultLogger.SInfof("%s\t|\t%s\t", h.Path, h.Method))
 	})
+	fmt.Fprint(w, logger.DefaultLogger.SInfof(""))
 	w.Flush()
 
 	s.Run(context.Background())

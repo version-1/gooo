@@ -4,10 +4,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/version-1/gooo/pkg/http/response"
 )
 
-type BeforeHandlerFunc func(*Response, *Request) bool
-type HandlerFunc func(*Response, *Request)
+type BeforeHandlerFunc func(*response.Response, *Request) bool
+type HandlerFunc func(*response.Response, *Request)
 
 type GroupHandler struct {
 	Path     string

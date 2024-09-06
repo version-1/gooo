@@ -8,13 +8,14 @@ import (
 	"github.com/version-1/gooo/pkg/config"
 	"github.com/version-1/gooo/pkg/context"
 	"github.com/version-1/gooo/pkg/controller"
+	"github.com/version-1/gooo/pkg/http/response"
 	"github.com/version-1/gooo/pkg/logger"
 )
 
 type Server struct {
 	Addr         string
 	Config       *config.App
-	ErrorHandler func(w *controller.Response, r *controller.Request, e error)
+	ErrorHandler func(w *response.Response, r *controller.Request, e error)
 	Handlers     []controller.Handler
 	Middlewares  []controller.Middleware
 }
@@ -39,7 +40,12 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rr := &controller.Request{
 		Request: r,
 	}
-	ww := &controller.Response{ResponseWriter: w}
+	ww := response.New(
+		w,
+		response.Options{
+			Adapter: s.Config.DefaultResponseRenderer,
+		},
+	)
 
 	for _, handler := range s.Handlers {
 		if handler.Match(rr) {
@@ -80,7 +86,6 @@ func WithDefaultMiddlewares(s *Server) {
 		),
 		controller.RequestBodyLogger(s.Logger()),
 		controller.RequestLogger(s.Logger()),
-		controller.JSONResponse(),
 	)
 }
 
@@ -104,7 +109,7 @@ func (s Server) WalkThrough(cb func(h controller.Handler)) {
 	}
 }
 
-func (s Server) withRecover(spot string, w *controller.Response, r *controller.Request, fn func()) {
+func (s Server) withRecover(spot string, w *response.Response, r *controller.Request, fn func()) {
 	defer func() {
 		if e := recover(); e != nil {
 			s.Logger().Errorf("Caught panic on %s", spot)
