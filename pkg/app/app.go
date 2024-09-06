@@ -4,25 +4,37 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/version-1/gooo/pkg/config"
+	"github.com/version-1/gooo/pkg/context"
 	"github.com/version-1/gooo/pkg/controller"
+	"github.com/version-1/gooo/pkg/logger"
 )
 
 type Server struct {
 	Addr        string
-	handlers    []controller.Handler
-	middlewares []controller.Middleware
+	Config      *config.App
+	Handlers    []controller.Handler
+	Middlewares []controller.Middleware
 }
 
-func (s *Server) Register(h controller.Handler) {
-	s.handlers = append(s.handlers, h)
+func (s *Server) SetLogger(l logger.Logger) {
+	s.Config.Logger = l
 }
 
-func (s *Server) RegisterMiddleware(m controller.Middleware) {
-	s.middlewares = append(s.middlewares, m)
+func (s Server) Logger() logger.Logger {
+	return s.Config.GetLogger()
+}
+
+func (s *Server) RegisterHandlers(h ...controller.Handler) {
+	s.Handlers = append(s.Handlers, h...)
+}
+
+func (s *Server) RegisterMiddlewares(m ...controller.Middleware) {
+	s.Middlewares = append(s.Middlewares, m...)
 }
 
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for _, m := range s.middlewares {
+	for _, m := range s.Middlewares {
 		if m.If(r) {
 			if next := m.Do(w, r); !next {
 				return
@@ -30,21 +42,38 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for _, handler := range s.handlers {
+	for _, handler := range s.Handlers {
 		rr := &controller.Request{
 			Request: r,
 			Handler: handler,
 		}
 		if handler.Match(rr) {
+			ww := &controller.Response{ResponseWriter: w}
 			if handler.BeforeHandler != nil {
-				(*handler.BeforeHandler)(w, rr)
+				(*handler.BeforeHandler)(ww, rr)
 			}
-			handler.Handler(w, rr)
+			handler.Handler(ww, rr)
 			return
 		}
 	}
 
 	http.NotFound(w, r)
+}
+
+func WithDefaultMiddlewares(s *Server) {
+	s.RegisterMiddlewares(
+		controller.WithContext(
+			func(r *http.Request) *http.Request {
+				ctx := r.Context()
+				ctx = context.WithAppConfig(ctx, s.Config)
+
+				return r.WithContext(ctx)
+			},
+		),
+		controller.RequestBodyLogger(s.Logger()),
+		controller.RequestLogger(s.Logger()),
+		controller.JSONResponse(),
+	)
 }
 
 func (s Server) Run() {
@@ -56,5 +85,12 @@ func (s Server) Run() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	s.Logger().Infof("Server is running on %s", s.Addr)
 	hs.ListenAndServe()
+}
+
+func (s Server) WalkThrough(cb func(h controller.Handler)) {
+	for _, h := range s.Handlers {
+		cb(h)
+	}
 }

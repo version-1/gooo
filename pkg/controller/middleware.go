@@ -83,3 +83,16 @@ func CORS(origin, methods, headers []string) Middleware {
 		},
 	}
 }
+
+func WithContext(callbacks ...func(r *http.Request) *http.Request) Middleware {
+	return Middleware{
+		If: Always,
+		Do: func(w http.ResponseWriter, r *http.Request) bool {
+			for _, cb := range callbacks {
+				*r = *cb(r)
+			}
+
+			return true
+		},
+	}
+}

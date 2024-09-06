@@ -5,30 +5,44 @@ import (
 	"net/http"
 )
 
+var _ http.ResponseWriter = &Response{}
+
 type Response struct {
-	w http.ResponseWriter
+	ResponseWriter http.ResponseWriter
 }
 
 func (r *Response) JSON(payload json.Marshaler) *Response {
-	json.NewEncoder(r.w).Encode(payload)
+	json.NewEncoder(r.ResponseWriter).Encode(payload)
 
 	return r
 }
 
 func (r *Response) Body(payload string) *Response {
-	r.w.Write([]byte(payload))
+	r.ResponseWriter.Write([]byte(payload))
 
 	return r
 }
 
 func (r *Response) Status(code int) *Response {
-	r.w.WriteHeader(code)
+	r.ResponseWriter.WriteHeader(code)
 	return r
 }
 
-func (r *Response) Header(key, value string) *Response {
-	r.w.Header().Set(key, value)
+func (r *Response) SetHeader(key, value string) *Response {
+	r.ResponseWriter.Header().Set(key, value)
 	return r
+}
+
+func (r Response) Header() http.Header {
+	return r.ResponseWriter.Header()
+}
+
+func (r *Response) Write(b []byte) (int, error) {
+	return r.ResponseWriter.Write(b)
+}
+
+func (r *Response) WriteHeader(statusCode int) {
+	r.ResponseWriter.WriteHeader(statusCode)
 }
 
 func (r *Response) InternalServerError() *Response {
