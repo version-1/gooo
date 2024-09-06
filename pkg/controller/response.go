@@ -11,7 +11,7 @@ type Response struct {
 	ResponseWriter http.ResponseWriter
 }
 
-func (r *Response) JSON(payload json.Marshaler) *Response {
+func (r *Response) JSON(payload any) *Response {
 	json.NewEncoder(r.ResponseWriter).Encode(payload)
 
 	return r

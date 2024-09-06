@@ -5,47 +5,44 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/version-1/gooo/pkg/logger"
 )
 
 type Middleware struct {
-	If func(*http.Request) bool
-	Do func(http.ResponseWriter, *http.Request) bool
+	If func(*Request) bool
+	Do func(*Response, *Request) bool
 }
 
-type Logger interface {
-	Infof(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
-}
-
-func Always(r *http.Request) bool {
+func Always(r *Request) bool {
 	return true
 }
 
 func JSONResponse() Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w http.ResponseWriter, r *http.Request) bool {
+		Do: func(w *Response, r *Request) bool {
 			w.Header().Set("Content-Type", "application/json")
 			return true
 		},
 	}
 }
 
-func RequestLogger(logger Logger) Middleware {
+func RequestLogger(logger logger.Logger) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w http.ResponseWriter, r *http.Request) bool {
-			logger.Infof("%s %s", r.Method, r.URL.Path)
+		Do: func(w *Response, r *Request) bool {
+			logger.Infof("%s %s", r.Request.Method, r.Request.URL.Path)
 			return true
 		},
 	}
 }
 
-func RequestBodyLogger(logger Logger) Middleware {
+func RequestBodyLogger(logger logger.Logger) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w http.ResponseWriter, r *http.Request) bool {
-			b, err := io.ReadAll(r.Body)
+		Do: func(w *Response, r *Request) bool {
+			b, err := io.ReadAll(r.Request.Body)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("Internal server error"))
@@ -53,18 +50,19 @@ func RequestBodyLogger(logger Logger) Middleware {
 				return false
 			}
 
-			io.Copy(w, io.MultiReader(bytes.NewReader(b), r.Body))
+			io.Copy(w, io.MultiReader(bytes.NewReader(b), r.Request.Body))
 			logger.Infof("body: %s", b)
 			return true
 		},
 	}
 }
 
-func RequestHeaderLogger(logger Logger) Middleware {
+func RequestHeaderLogger(logger logger.Logger) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w http.ResponseWriter, r *http.Request) bool {
-			for k, v := range r.Header {
+		Do: func(w *Response, r *Request) bool {
+			logger.Infof("HTTP Headers: ")
+			for k, v := range r.Request.Header {
 				logger.Infof("%s: %s", k, v)
 			}
 			return true
@@ -75,7 +73,7 @@ func RequestHeaderLogger(logger Logger) Middleware {
 func CORS(origin, methods, headers []string) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w http.ResponseWriter, r *http.Request) bool {
+		Do: func(w *Response, r *Request) bool {
 			w.Header().Set("Access-Control-Allow-Origin", strings.Join(origin, ", "))
 			w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ", "))
 			w.Header().Set("Access-Control-Allow-Headers", strings.Join(headers, ", "))
@@ -84,10 +82,10 @@ func CORS(origin, methods, headers []string) Middleware {
 	}
 }
 
-func WithContext(callbacks ...func(r *http.Request) *http.Request) Middleware {
+func WithContext(callbacks ...func(r *Request) *Request) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w http.ResponseWriter, r *http.Request) bool {
+		Do: func(w *Response, r *Request) bool {
 			for _, cb := range callbacks {
 				*r = *cb(r)
 			}

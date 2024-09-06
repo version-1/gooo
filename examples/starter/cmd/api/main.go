@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -62,5 +63,5 @@ func main() {
 	})
 	w.Flush()
 
-	s.Run()
+	s.Run(context.Background())
 }

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	gocontext "context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -35,4 +36,9 @@ func (r Request) Param(key string) (string, bool) {
 
 func (r Request) ParamInt(key string) (int, bool) {
 	return r.Handler.ParamInt(r.Request.URL.Path, key)
+}
+
+func (r *Request) WithContext(ctx gocontext.Context) *Request {
+	r.Request = r.Request.WithContext(ctx)
+	return r
 }
