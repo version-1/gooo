@@ -56,7 +56,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	for _, m := range s.Middlewares {
 		if m.If(rr) {
-			s.withRecover("middleware", ww, rr, func() {
+			s.withRecover(m.String(), ww, rr, func() {
 				if next := m.Do(ww, rr); !next {
 					return
 				}
@@ -64,7 +64,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	s.withRecover("handler", ww, rr, func() {
+	s.withRecover(rr.Handler.String(), ww, rr, func() {
 		if rr.Handler.BeforeHandler != nil {
 			(*rr.Handler.BeforeHandler)(ww, rr)
 		}

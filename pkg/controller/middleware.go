@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -11,8 +12,13 @@ import (
 )
 
 type Middleware struct {
-	If func(*Request) bool
-	Do func(*response.Response, *Request) bool
+	Name string
+	If   func(*Request) bool
+	Do   func(*response.Response, *Request) bool
+}
+
+func (m Middleware) String() string {
+	return fmt.Sprintf("Middleware %s", m.Name)
 }
 
 func Always(r *Request) bool {

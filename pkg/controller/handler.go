@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -35,6 +36,10 @@ type Handler struct {
 	Method        string
 	BeforeHandler *BeforeHandlerFunc
 	Handler       HandlerFunc
+}
+
+func (h Handler) String() string {
+	return fmt.Sprintf("Handler [%s] %s", h.Method, h.Path)
 }
 
 func (h Handler) Match(r *Request) bool {
