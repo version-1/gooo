@@ -1,4 +1,4 @@
-package controller
+package request
 
 import (
 	gocontext "context"
@@ -10,8 +10,13 @@ import (
 	"github.com/version-1/gooo/pkg/logger"
 )
 
+type ParamParser interface {
+	Param(url string, key string) (string, bool)
+	ParamInt(url string, key string) (int, bool)
+}
+
 type Request struct {
-	Handler Handler
+	Handler ParamParser
 	*http.Request
 }
 

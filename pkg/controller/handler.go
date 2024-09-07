@@ -6,11 +6,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/version-1/gooo/pkg/http/request"
 	"github.com/version-1/gooo/pkg/http/response"
 )
 
-type BeforeHandlerFunc func(*response.Response, *Request) bool
-type HandlerFunc func(*response.Response, *Request)
+type BeforeHandlerFunc func(*response.Response, *request.Request) bool
+type HandlerFunc func(*response.Response, *request.Request)
 
 type GroupHandler struct {
 	Path     string
@@ -42,7 +43,7 @@ func (h Handler) String() string {
 	return fmt.Sprintf("Handler [%s] %s", h.Method, h.Path)
 }
 
-func (h Handler) Match(r *Request) bool {
+func (h Handler) Match(r *request.Request) bool {
 	if r.Request.Method != h.Method {
 		return false
 	}

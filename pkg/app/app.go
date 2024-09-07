@@ -8,6 +8,7 @@ import (
 	"github.com/version-1/gooo/pkg/config"
 	"github.com/version-1/gooo/pkg/context"
 	"github.com/version-1/gooo/pkg/controller"
+	"github.com/version-1/gooo/pkg/http/request"
 	"github.com/version-1/gooo/pkg/http/response"
 	"github.com/version-1/gooo/pkg/logger"
 )
@@ -15,7 +16,7 @@ import (
 type Server struct {
 	Addr         string
 	Config       *config.App
-	ErrorHandler func(w *response.Response, r *controller.Request, e error)
+	ErrorHandler func(w *response.Response, r *request.Request, e error)
 	Handlers     []controller.Handler
 	Middlewares  []controller.Middleware
 }
@@ -37,7 +38,7 @@ func (s *Server) RegisterMiddlewares(m ...controller.Middleware) {
 }
 
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	rr := &controller.Request{
+	rr := &request.Request{
 		Request: r,
 	}
 	ww := response.New(
@@ -46,13 +47,6 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Adapter: s.Config.DefaultResponseRenderer,
 		},
 	)
-
-	for _, handler := range s.Handlers {
-		if handler.Match(rr) {
-			rr.Handler = handler
-			return
-		}
-	}
 
 	for _, m := range s.Middlewares {
 		if m.If(rr) {
@@ -64,20 +58,32 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	s.withRecover(rr.Handler.String(), ww, rr, func() {
-		if rr.Handler.BeforeHandler != nil {
-			(*rr.Handler.BeforeHandler)(ww, rr)
+	var target *controller.Handler
+	for _, handler := range s.Handlers {
+		if handler.Match(rr) {
+			target = &handler
+			break
 		}
-		rr.Handler.Handler(ww, rr)
-	})
+	}
 
-	http.NotFound(w, r)
+	if target == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	rr.Handler = target
+	s.withRecover(target.String(), ww, rr, func() {
+		if target.BeforeHandler != nil {
+			(*target.BeforeHandler)(ww, rr)
+		}
+		target.Handler(ww, rr)
+	})
 }
 
 func WithDefaultMiddlewares(s *Server) {
 	s.RegisterMiddlewares(
 		controller.WithContext(
-			func(r *controller.Request) *controller.Request {
+			func(r *request.Request) *request.Request {
 				ctx := r.Context()
 				ctx = context.WithAppConfig(ctx, s.Config)
 
@@ -109,7 +115,7 @@ func (s Server) WalkThrough(cb func(h controller.Handler)) {
 	}
 }
 
-func (s Server) withRecover(spot string, w *response.Response, r *controller.Request, fn func()) {
+func (s Server) withRecover(spot string, w *response.Response, r *request.Request, fn func()) {
 	defer func() {
 		if e := recover(); e != nil {
 			s.Logger().Errorf("Caught panic on %s", spot)

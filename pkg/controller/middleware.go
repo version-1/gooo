@@ -7,28 +7,29 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/version-1/gooo/pkg/http/request"
 	"github.com/version-1/gooo/pkg/http/response"
 	"github.com/version-1/gooo/pkg/logger"
 )
 
 type Middleware struct {
 	Name string
-	If   func(*Request) bool
-	Do   func(*response.Response, *Request) bool
+	If   func(*request.Request) bool
+	Do   func(*response.Response, *request.Request) bool
 }
 
 func (m Middleware) String() string {
 	return fmt.Sprintf("Middleware %s", m.Name)
 }
 
-func Always(r *Request) bool {
+func Always(r *request.Request) bool {
 	return true
 }
 
 func RequestLogger(logger logger.Logger) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w *response.Response, r *Request) bool {
+		Do: func(w *response.Response, r *request.Request) bool {
 			logger.Infof("%s %s", r.Request.Method, r.Request.URL.Path)
 			return true
 		},
@@ -38,7 +39,7 @@ func RequestLogger(logger logger.Logger) Middleware {
 func RequestBodyLogger(logger logger.Logger) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w *response.Response, r *Request) bool {
+		Do: func(w *response.Response, r *request.Request) bool {
 			b, err := io.ReadAll(r.Request.Body)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -57,7 +58,7 @@ func RequestBodyLogger(logger logger.Logger) Middleware {
 func RequestHeaderLogger(logger logger.Logger) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w *response.Response, r *Request) bool {
+		Do: func(w *response.Response, r *request.Request) bool {
 			logger.Infof("HTTP Headers: ")
 			for k, v := range r.Request.Header {
 				logger.Infof("%s: %s", k, v)
@@ -70,7 +71,7 @@ func RequestHeaderLogger(logger logger.Logger) Middleware {
 func CORS(origin, methods, headers []string) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w *response.Response, r *Request) bool {
+		Do: func(w *response.Response, r *request.Request) bool {
 			w.Header().Set("Access-Control-Allow-Origin", strings.Join(origin, ", "))
 			w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ", "))
 			w.Header().Set("Access-Control-Allow-Headers", strings.Join(headers, ", "))
@@ -79,10 +80,10 @@ func CORS(origin, methods, headers []string) Middleware {
 	}
 }
 
-func WithContext(callbacks ...func(r *Request) *Request) Middleware {
+func WithContext(callbacks ...func(r *request.Request) *request.Request) Middleware {
 	return Middleware{
 		If: Always,
-		Do: func(w *response.Response, r *Request) bool {
+		Do: func(w *response.Response, r *request.Request) bool {
 			for _, cb := range callbacks {
 				*r = *cb(r)
 			}
