@@ -2,12 +2,14 @@ package logger
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
 type Logger interface {
 	Infof(format string, args ...interface{})
 	Errorf(format string, args ...interface{})
+	Fatalf(format string, args ...interface{})
 }
 
 type defaultLogger struct{}
@@ -56,6 +58,10 @@ func (l defaultLogger) Errorf(format string, args ...interface{}) {
 
 func (l defaultLogger) Warnf(format string, args ...interface{}) {
 	fmt.Printf(l.SWarnf(format, args...))
+}
+
+func (l defaultLogger) Fatalf(format string, args ...interface{}) {
+	log.Fatalf(l.SErrorf(format, args...))
 }
 
 func WithColor(c, msg string) string {
