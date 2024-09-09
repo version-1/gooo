@@ -9,6 +9,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
 	golang.org/x/tools v0.23.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
