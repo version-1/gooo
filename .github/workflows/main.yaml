@@ -1,4 +1,4 @@
-name: Eagle Lens CI/CD
+name: Gooo Pipeline
 run-name: ${{ github.actor }} is testing out the app
 on:
   push:
