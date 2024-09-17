@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	_ "github.com/lib/pq"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/version-1/gooo/pkg/logger"
 )
@@ -63,10 +65,10 @@ func (s SeedExecutor) RunWith(tx *sqlx.Tx, name ...string) {
 
 func (s SeedExecutor) Run(name ...string) {
 	db, err := sqlx.Connect("postgres", s.cfg.Connstr())
-	defer db.Close()
 	if err != nil {
 		s.logger().Fatalf(err.Error())
 	}
+	defer db.Close()
 
 	tx := db.MustBegin()
 	s.RunWith(tx, name...)

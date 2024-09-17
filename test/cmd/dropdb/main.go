@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
+	"os"
 	"text/template"
 
 	_ "github.com/lib/pq"
@@ -15,7 +16,7 @@ import (
 var fixtures embed.FS
 
 func main() {
-	db, err := sqlx.Connect("postgres", "postgres://gooo:password@127.0.0.1:5432/gooo_test?sslmode=disable")
+	db, err := sqlx.Connect("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		panic(err)
 	}

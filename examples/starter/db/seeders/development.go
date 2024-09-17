@@ -33,7 +33,7 @@ func (S DevelopmentSeed) Logger() seeder.Logger {
 type Seed_0001_User struct{}
 
 func (s Seed_0001_User) Exec(tx *sqlx.Tx) error {
-	query := "INSERT INTO users (name, email) VALUES ('John Doe', 'john@example.com')"
+	query := "INSERT INTO seeder_users (name, email) VALUES ('John Doe', 'john@example.com')"
 	if _, err := tx.Exec(query); err != nil {
 		return err
 	}
