@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	tmpl := runner.NewTemplateRunner(logger.DefaultLogger, os.Getenv("CONNSTR"), "db/seeders/template/*.sql")
+	tmpl := runner.NewTemplateRunner(logger.DefaultLogger, os.Getenv("DATABAE_URL"), "db/seeders/template/*.sql")
 
 	ex := seeder.New(tmpl)
 	ex.Run()

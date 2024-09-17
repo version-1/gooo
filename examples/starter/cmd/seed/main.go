@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	seed := seeders.NewDevelopmentSeed(os.Getenv("CONNSTR"))
+	seed := seeders.NewDevelopmentSeed(os.Getenv("DATABASE_URL"))
 
 	ex := seeder.New(seed)
 	ex.Run()

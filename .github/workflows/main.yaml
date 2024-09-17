@@ -1,0 +1,85 @@
+name: Eagle Lens CI/CD
+run-name: ${{ github.actor }} is testing out the app
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/*'
+      - 'releases/*'
+jobs:
+  test-packages:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.22-alpine3.20
+    defaults:
+      run:
+        shell: sh
+    env:
+      ENV: test
+      DATABAE_URL: postgres://gooo:password@127.0.0.1:5432/gooo_test?sslmode=disable
+    services:
+      postgressrv:
+        image: postgres:16.2
+        env:
+          POSTGRES_USER: gooo
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: gooo_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: apk add --update-cache git
+      - name: Init Database
+        run: go run test/cmd/initdb/main.go
+      - name: Run tests
+        run: go test -v ./pkg/...
+  run-examples:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.22-alpine3.20
+    defaults:
+      run:
+        shell: sh
+    env:
+      ENV: test
+    services:
+      postgressrv:
+        image: postgres:16.2
+        env:
+          POSTGRES_USER: gooo
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: gooo_development
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: apk add --update-cache git
+      - name: Init Database
+        run: go run test/cmd/initdb/main.go
+      # - name: Run API
+      #   run: go run examples/starter/cmd/api/main.go
+      - name: Run Scheme
+        run: go run examples/starter/cmd/schema/main.go
+      - name: Run Seed
+        run: go run examples/starter/cmd/schema/main.go
+      - name: Run Seed From Template
+        run: go run examples/starter/cmd/schema/main.go
+      - name: Run Migration Up
+        run: go run examples/starter/cmd/migration/main.go up
+      - name: Run Migration Down
+        run: go run examples/starter/cmd/migration/main.go down

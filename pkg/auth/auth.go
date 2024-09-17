@@ -7,12 +7,13 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/version-1/gooo/pkg/controller"
+	"github.com/version-1/gooo/pkg/http/request"
 	"github.com/version-1/gooo/pkg/http/response"
 )
 
 type JWTAuth[T any] struct {
-	If             func(r *controller.Request) bool
-	OnAuthorized   func(r *controller.Request, sub string) error
+	If             func(r *request.Request) bool
+	OnAuthorized   func(r *request.Request, sub string) error
 	PrivateKey     *string
 	TokenExpiresIn time.Duration
 	Issuer         string
@@ -26,7 +27,7 @@ func (a JWTAuth[T]) GetPrivateKey() string {
 	return *a.PrivateKey
 }
 
-func (a JWTAuth[T]) Sign(r *controller.Request) (string, error) {
+func (a JWTAuth[T]) Sign(r *request.Request) (string, error) {
 	claims := &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(a.TokenExpiresIn)),
 		Issuer:    a.Issuer,
@@ -39,7 +40,7 @@ func (a JWTAuth[T]) Sign(r *controller.Request) (string, error) {
 func (a JWTAuth[T]) Guard() controller.Middleware {
 	return controller.Middleware{
 		If: a.If,
-		Do: func(w *response.Response, r *controller.Request) bool {
+		Do: func(w *response.Response, r *request.Request) bool {
 			str := r.Header.Get("Authorization")
 			token := strings.TrimSpace(strings.ReplaceAll(str, "Bearer ", ""))
 			t, err := jwt.ParseWithClaims(token, &jwt.RegisteredClaims{}, func(t *jwt.Token) (any, error) {

@@ -47,7 +47,7 @@ func humanize(v any) string {
 	case []int:
 		list := []string{}
 		for _, item := range vv {
-			list = append(list, fmt.Sprintf("%s", item))
+			list = append(list, fmt.Sprintf("%d", item))
 		}
 
 		return fmt.Sprintf("[%s]", strings.Join(list, ", "))
@@ -75,7 +75,7 @@ func humanize(v any) string {
 
 		list := []string{}
 		for _, item := range *vv {
-			list = append(list, fmt.Sprintf("%s", item))
+			list = append(list, fmt.Sprintf("%d", item))
 		}
 
 		return fmt.Sprintf("[%s]", strings.Join(list, ", "))

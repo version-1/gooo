@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	db, err := sqlx.Connect("postgres", "postgres://gooo:password@127.0.0.1:5432/gooo_development?sslmode=disable")
+	db, err := sqlx.Connect("postgres", "postgres://gooo:password@127.0.0.1:5432/gooo_test?sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
