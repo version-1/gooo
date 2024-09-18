@@ -79,6 +79,10 @@ jobs:
       - name: Run Seed
         run: go run examples/starter/cmd/seed/main.go
       - name: Run Migration Up
+        env:
+          MIGRATION_PATH: examples/starter/db/migrations/*.sql
         run: go run examples/starter/cmd/migration/main.go up
       - name: Run Migration Down
+        env:
+          MIGRATION_PATH: examples/starter/db/migrations/*.sql
         run: go run examples/starter/cmd/migration/main.go down

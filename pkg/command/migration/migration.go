@@ -7,13 +7,14 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/version-1/gooo/pkg/command/migration/adapter/yaml"
 	"github.com/version-1/gooo/pkg/command/migration/constants"
+	"github.com/version-1/gooo/pkg/command/migration/runner"
 	"github.com/version-1/gooo/pkg/db"
 	"github.com/version-1/gooo/pkg/logger"
 )
 
-var _ Runner = (*yaml.SchemaManager)(nil)
+var _ Runner = (*runner.Base)(nil)
+var _ Runner = (*runner.Yaml)(nil)
 
 type Command struct {
 	database string

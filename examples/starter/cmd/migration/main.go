@@ -7,7 +7,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/version-1/gooo/pkg/command/migration"
-	"github.com/version-1/gooo/pkg/command/migration/adapter/yaml"
+	"github.com/version-1/gooo/pkg/command/migration/runner"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	m, err := yaml.NewSchemaManager(db, "./db/migrations/*.yaml")
+	m, err := runner.NewYaml(db, os.Getenv("MIGRATION_PATH"))
 	if err != nil {
 		panic(err)
 	}

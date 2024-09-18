@@ -3,10 +3,12 @@ package yaml
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 	"github.com/version-1/gooo/pkg/db"
+	yaml "gopkg.in/yaml.v3"
 )
 
 type OriginSchema struct {
@@ -129,6 +131,44 @@ func (s *OriginSchema) Down(ctx context.Context, db db.Tx) error {
 		if _, err := db.ExecContext(ctx, q); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+type RawSchema struct {
+	Query string `yaml:"query"`
+}
+
+func (s *RawSchema) Load(path string) error {
+	return load(path, s)
+}
+
+func (s *RawSchema) Up(ctx context.Context, tx db.Tx) error {
+	if _, exec := tx.ExecContext(ctx, s.Query); exec != nil {
+		return exec
+	}
+
+	return nil
+}
+
+func (s *RawSchema) Down(ctx context.Context, tx db.Tx) error {
+	if _, exec := tx.ExecContext(ctx, s.Query); exec != nil {
+		return exec
+	}
+
+	return nil
+}
+
+func load(path string, schema any) error {
+	f, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(f, schema)
+	if err != nil {
+		return err
 	}
 
 	return nil
