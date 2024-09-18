@@ -2,77 +2,130 @@ package errors
 
 import (
 	"fmt"
-	"io"
-
-	"github.com/pkg/errors"
+	"runtime"
 )
 
-type WrappedError struct {
-	err error
+type Error struct {
+	code  string
+	msg   string
+	stack *stack
 }
 
-type withCause interface {
-	Cause() error
+func New(code, msg string) *Error {
+	return &Error{
+		code:  code,
+		msg:   msg,
+		stack: captureStack(),
+	}
 }
 
-func (e WrappedError) Value() error {
-	return e.err
+func (e Error) StackTrace() string {
+	return fmt.Sprintf("%+v", e.stack)
 }
 
-func (e WrappedError) Error() string {
-	return e.err.Error()
+func (e Error) Code() string {
+	return e.code
 }
 
-func (e WrappedError) Format(s fmt.State, verb rune) {
-	switch verb {
+func (e Error) Error() string {
+	return fmt.Sprintf("code: %s. msg: %s", e.code, e.msg)
+}
+
+func (e Error) Format(f fmt.State, c rune) {
+	switch c {
 	case 'v':
-		if s.Flag('+') {
-			fmt.Fprintf(s, "%+v", e.err)
+		if f.Flag('+') {
+			fmt.Fprintf(f, "%+v\n", e.stack)
 			return
 		}
-
-		if s.Flag('#') {
-			if v, ok := e.err.(withCause); ok {
-				fmt.Fprintf(s, "%#v", v.Cause())
-				return
-			}
-
-			fmt.Fprintf(s, "%#v", e.err)
-			return
-		}
-
-		fmt.Fprintf(s, "%#v", e.err)
+		fallthrough
 	case 's':
-		io.WriteString(s, e.err.Error())
+		fmt.Fprintf(f, "%s", e.msg)
 	case 'q':
-		fmt.Fprintf(s, "%q", e.err)
+		fmt.Fprintf(f, "%q", e.msg)
 	}
 }
 
-func Wrap(err error) WrappedError {
-	return WrappedError{err: errors.WithStack(err)}
+type stack []frame
+
+func (st *stack) Format(f fmt.State, c rune) {
+	switch c {
+	case 'v', 's':
+		for _, fr := range *st {
+			output := fr.String()
+			if output != "" {
+				fmt.Fprintln(f, fr.String())
+			}
+		}
+	}
 }
 
-func New(msg string) WrappedError {
-	return WrappedError{err: errors.WithStack(fmt.Errorf(msg))}
+type frame struct {
+	pc   uintptr
+	line *int
+	file *string
+	name *string
 }
 
-func Errorf(format string, args ...interface{}) WrappedError {
-	return WrappedError{err: errors.WithStack(fmt.Errorf(format, args...))}
-}
+func (f frame) counter() uintptr { return uintptr(f.pc) - 1 }
 
-func Is(err error, target error) bool {
-	if err == nil || target == nil {
-		return false
+func (f *frame) collect() {
+	fn := runtime.FuncForPC(f.counter())
+	if fn == nil {
+		return
 	}
 
-	v, ok := err.(WrappedError)
-	if ok {
-		return errors.Is(v.Value(), target)
-	}
-	return errors.Is(err, target)
+	name := fn.Name()
+	f.name = &name
+	file, line := fn.FileLine(f.counter())
+
+	f.file = &file
+	f.line = &line
 }
 
-func As(err error, target error) bool {
-	return errors.As(err, target)
+func (f frame) String() string {
+	if f.file == nil {
+		return ""
+	}
+	return fmt.Sprintf("%s:%s:%d", f.File(), f.FuncName(), f.Line())
+}
+
+func (f *frame) File() string {
+	if f.file != nil {
+		return *f.file
+	}
+	f.collect()
+
+	return *f.file
+}
+
+func (f *frame) Line() int {
+	if f.line != nil {
+		return *f.line
+	}
+	f.collect()
+
+	return *f.line
+}
+
+func (f *frame) FuncName() string {
+	if f.name != nil {
+		return *f.name
+	}
+
+	f.collect()
+
+	return *f.name
+}
+
+func captureStack() *stack {
+	const depth = 32
+	var pcs [depth]uintptr
+	n := runtime.Callers(3, pcs[:])
+	frames := make([]frame, n)
+	for _, pc := range pcs[0:n] {
+		frames = append(frames, frame{pc: pc})
+	}
+	st := stack(frames)
+	return &st
 }
