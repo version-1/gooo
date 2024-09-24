@@ -1,20 +1,19 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 	"runtime"
 )
 
 type Error struct {
-	code  string
-	msg   string
+	err   error
 	stack *stack
 }
 
-func New(code, msg string) *Error {
+func New(msg string) *Error {
 	return &Error{
-		code:  code,
-		msg:   msg,
+		err:   errors.New(msg),
 		stack: captureStack(),
 	}
 }
@@ -23,12 +22,8 @@ func (e Error) StackTrace() string {
 	return fmt.Sprintf("%+v", e.stack)
 }
 
-func (e Error) Code() string {
-	return e.code
-}
-
 func (e Error) Error() string {
-	return fmt.Sprintf("code: %s. msg: %s", e.code, e.msg)
+	return fmt.Sprintf("pkg/errors : %s", e.err)
 }
 
 func (e Error) Format(f fmt.State, c rune) {

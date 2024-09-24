@@ -7,6 +7,15 @@ import (
 
 type Errors []Error
 
+func (j Errors) Error() string {
+	list := []string{}
+	for _, e := range j {
+		list = append(list, e.Error())
+	}
+
+	return fmt.Sprintf("[%s]", strings.Join(list, ", "))
+}
+
 func (j Errors) JSONAPISerialize() (string, error) {
 	str := "["
 	for _, e := range j {
@@ -29,6 +38,10 @@ type Error struct {
 	Detail string
 }
 
+func (j Error) Error() string {
+	return j.Detail
+}
+
 func (j Error) JSONAPISerialize() (string, error) {
 	fields := []string{
 		fmt.Sprintf("\"id\": %s", Stringify(j.ID)),
@@ -41,6 +54,7 @@ func (j Error) JSONAPISerialize() (string, error) {
 	return fmt.Sprintf("{\n%s\n}", strings.Join(fields, ", \n")), nil
 }
 
-type ErrorCompatible interface {
+type Errable interface {
 	ToJSONAPIError() Error
+	Error() string
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	goooerrors "github.com/version-1/gooo/pkg/errors"
 	"github.com/version-1/gooo/pkg/presenter/jsonapi"
 )
 
@@ -35,15 +36,44 @@ func (a JSONAPI) Render(w http.ResponseWriter, payload any, options ...any) erro
 	return err
 }
 
-func (a JSONAPI) RenderError(w http.ResponseWriter, e any, options ...any) error {
-	b, err := a.resolveError(e, options...)
+func (a JSONAPI) RenderError(w http.ResponseWriter, e error, options ...any) error {
+	b, errors, err := a.resolveError(e, options...)
 	if err != nil {
+		fmt.Println("error ==========", err)
 		return err
 	}
 
 	w.Header().Set("Content-Type", "application/vnd.api+json")
+	if len(errors) > 0 {
+		w.WriteHeader(errors[0].Status)
+	}
 	_, err = w.Write(b)
 	return err
+}
+
+func (a JSONAPI) InternalServerError(w http.ResponseWriter, e error, options ...any) error {
+	err := jsonapi.NewInternalServerError(e)
+	return a.RenderError(w, err, options...)
+}
+
+func (a JSONAPI) BadRequest(w http.ResponseWriter, e error, options ...any) error {
+	err := jsonapi.NewBadRequest(e)
+	return a.RenderError(w, err, options...)
+}
+
+func (a JSONAPI) NotFound(w http.ResponseWriter, e error, options ...any) error {
+	err := jsonapi.NewNotFound(e)
+	return a.RenderError(w, err, options...)
+}
+
+func (a JSONAPI) Unauthorized(w http.ResponseWriter, e error, options ...any) error {
+	err := jsonapi.NewUnauthorized(e)
+	return a.RenderError(w, err, options...)
+}
+
+func (a JSONAPI) Forbidden(w http.ResponseWriter, e error, options ...any) error {
+	err := jsonapi.NewForbidden(e)
+	return a.RenderError(w, err, options...)
 }
 
 func (a JSONAPI) resolve(payload any, options ...any) ([]byte, error) {
@@ -75,19 +105,24 @@ func (a JSONAPI) resolve(payload any, options ...any) ([]byte, error) {
 	}
 }
 
-func (a JSONAPI) resolveError(e any, options ...any) ([]byte, error) {
+func (a JSONAPI) resolveError(e error, options ...any) ([]byte, []jsonapi.Error, error) {
 	switch v := e.(type) {
 	case jsonapi.Errors:
 		s, err := jsonapi.NewErrors(v).Serialize()
-		return []byte(s), err
+		return []byte(s), v, err
 	case jsonapi.Error:
-		s, err := jsonapi.NewErrors(jsonapi.Errors{v}).Serialize()
-		return []byte(s), err
-	case jsonapi.ErrorCompatible:
+		errors := jsonapi.Errors{v}
+		s, err := jsonapi.NewErrors(errors).Serialize()
+		return []byte(s), errors, err
+	case jsonapi.Errable:
 		obj := v.ToJSONAPIError()
-		s, err := jsonapi.NewErrors(jsonapi.Errors{obj}).Serialize()
-		return []byte(s), err
+		errors := jsonapi.Errors{obj}
+		s, err := jsonapi.NewErrors(errors).Serialize()
+		return []byte(s), errors, goooerrors.New(err.Error())
 	default:
-		return []byte{}, JSONAPIInvalidTypeError{Payload: v}
+		obj := jsonapi.NewErrorResponse(v).ToJSONAPIError()
+		errors := jsonapi.Errors{obj}
+		s, err := jsonapi.NewErrors(errors).Serialize()
+		return []byte(s), errors, err
 	}
 }

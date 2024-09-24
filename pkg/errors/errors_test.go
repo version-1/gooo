@@ -7,7 +7,7 @@ import (
 )
 
 func TestErrors(t *testing.T) {
-	err := New("code", "msg")
+	err := New("msg")
 
 	tests := []struct {
 		name    string
@@ -41,14 +41,14 @@ func TestErrors(t *testing.T) {
 			subject: func() string {
 				return fmt.Sprintf("%v", err)
 			},
-			expect: "code: code. msg: msg",
+			expect: "pkg/errors : msg",
 		},
 		{
 			name: "Print Error with s",
 			subject: func() string {
 				return fmt.Sprintf("%s", err)
 			},
-			expect: "code: code. msg: msg",
+			expect: "pkg/errors : msg",
 		},
 	}
 

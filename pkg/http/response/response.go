@@ -14,7 +14,12 @@ var rawAdapter Renderer = adapter.Raw{}
 
 type Renderer interface {
 	Render(w http.ResponseWriter, payload any, options ...any) error
-	RenderError(w http.ResponseWriter, err any, options ...any) error
+	RenderError(w http.ResponseWriter, err error, options ...any) error
+	InternalServerError(w http.ResponseWriter, err error, options ...any) error
+	NotFound(w http.ResponseWriter, err error, options ...any) error
+	BadRequest(w http.ResponseWriter, err error, options ...any) error
+	Unauthorized(w http.ResponseWriter, err error, options ...any) error
+	Forbidden(w http.ResponseWriter, err error, options ...any) error
 }
 
 type Options struct {
@@ -57,6 +62,7 @@ func (r *Response) SetAdapter(adp Renderer) *Response {
 }
 
 func (r *Response) JSON(payload any) *Response {
+	r.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(r.ResponseWriter).Encode(payload)
 
 	return r
@@ -77,7 +83,7 @@ func (r *Response) Render(payload any, options ...any) error {
 	return r.Adapter().Render(r.ResponseWriter, payload, options...)
 }
 
-func (r *Response) RenderError(payload any, options ...any) error {
+func (r *Response) RenderError(payload error, options ...any) error {
 	return r.Adapter().Render(r.ResponseWriter, payload, options...)
 }
 
@@ -112,4 +118,28 @@ func (r *Response) BadRequest() *Response {
 
 func (r *Response) Unauthorized() *Response {
 	return r.Status(http.StatusUnauthorized)
+}
+
+func (r *Response) Forbidden() *Response {
+	return r.Status(http.StatusForbidden)
+}
+
+func (r *Response) InternalServerErrorWith(e error, options ...any) error {
+	return r.Adapter().InternalServerError(r.ResponseWriter, e, options...)
+}
+
+func (r *Response) NotFoundWith(e error, options ...any) error {
+	return r.Adapter().NotFound(r.ResponseWriter, e, options...)
+}
+
+func (r *Response) BadRequestWith(e error, options ...any) error {
+	return r.Adapter().BadRequest(r.ResponseWriter, e, options...)
+}
+
+func (r *Response) UnauthorizedWith(e error, options ...any) error {
+	return r.Adapter().Unauthorized(r.ResponseWriter, e, options...)
+}
+
+func (r *Response) ForbiddenWith(e error, options ...any) error {
+	return r.Adapter().Forbidden(r.ResponseWriter, e, options...)
 }

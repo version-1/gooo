@@ -44,7 +44,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ww := response.New(
 		w,
 		response.Options{
-			Adapter: s.Config.DefaultResponseRenderer,
+			Adapter: string(s.Config.DefaultResponseRenderer),
 		},
 	)
 

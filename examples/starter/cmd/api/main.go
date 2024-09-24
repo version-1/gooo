@@ -6,14 +6,124 @@ import (
 	"net/http"
 	"os"
 	"text/tabwriter"
+	"time"
 
 	"github.com/version-1/gooo/pkg/app"
 	"github.com/version-1/gooo/pkg/config"
 	"github.com/version-1/gooo/pkg/controller"
+	"github.com/version-1/gooo/pkg/http/request"
+	"github.com/version-1/gooo/pkg/http/response"
 	"github.com/version-1/gooo/pkg/logger"
 )
 
+type Dummy struct {
+	String string    `json:"string"`
+	Number int       `json:"number"`
+	Flag   bool      `json:"flag"`
+	Time   time.Time `json:"time"`
+}
+
+type DummyError struct {
+}
+
+func (e DummyError) Error() string {
+	return "dummy error"
+}
+
+func (e DummyError) Code() string {
+	return "dummy_error"
+}
+
+func (e DummyError) Title() string {
+	return "Dummy Error"
+}
+
 func main() {
+	ping := controller.Handler{
+		Path:   "/ping",
+		Method: http.MethodGet,
+		Handler: func(w *response.Response, r *request.Request) {
+			w.JSON(map[string]string{"message": "pong"})
+		},
+	}
+
+	testing := controller.GroupHandler{
+		Path: "/testing",
+		Handlers: []controller.Handler{
+			{
+				Path:   "/render",
+				Method: http.MethodGet,
+				Handler: func(w *response.Response, r *request.Request) {
+					data := Dummy{
+						String: "Hello, World!",
+						Number: 42,
+						Flag:   true,
+						Time:   time.Now(),
+					}
+					if err := w.Render(data); err != nil {
+						if err := w.InternalServerErrorWith(err); err != nil {
+							fmt.Printf("stacktrace ==========%+v\n", err)
+						}
+					}
+				},
+			},
+			{
+				Path:   "/render_error",
+				Method: http.MethodGet,
+				Handler: func(w *response.Response, r *request.Request) {
+					if err := w.RenderError(fmt.Errorf("error")); err != nil {
+						w.InternalServerErrorWith(err)
+					}
+				},
+			},
+			{
+				Path:   "/interal_server_error",
+				Method: http.MethodGet,
+				Handler: func(w *response.Response, r *request.Request) {
+					if err := w.InternalServerErrorWith(DummyError{}); err != nil {
+						w.InternalServerErrorWith(err)
+					}
+				},
+			},
+			{
+				Path:   "/bad_request",
+				Method: http.MethodGet,
+				Handler: func(w *response.Response, r *request.Request) {
+					if err := w.InternalServerErrorWith(DummyError{}); err != nil {
+						w.InternalServerErrorWith(err)
+					}
+				},
+			},
+			{
+				Path:   "/unauthorized",
+				Method: http.MethodGet,
+				Handler: func(w *response.Response, r *request.Request) {
+					if err := w.UnauthorizedWith(DummyError{}); err != nil {
+						w.InternalServerErrorWith(err)
+					}
+				},
+			},
+			{
+				Path:   "/forbidden",
+				Method: http.MethodGet,
+				Handler: func(w *response.Response, r *request.Request) {
+					if err := w.ForbiddenWith(DummyError{}); err != nil {
+						w.InternalServerErrorWith(err)
+					}
+				},
+			},
+			{
+				Path:   "/not_found",
+				Method: http.MethodGet,
+				Handler: func(w *response.Response, r *request.Request) {
+					if err := w.NotFoundWith(DummyError{}); err != nil {
+						w.InternalServerErrorWith(err)
+					}
+				},
+			},
+		},
+	}
+
 	users := controller.GroupHandler{
 		Path: "/users",
 		Handlers: []controller.Handler{
@@ -44,9 +154,12 @@ func main() {
 		Path: "/api/v1",
 	}
 	apiRoot.Add(users...)
+	apiRoot.Add(ping)
+	apiRoot.Add(testing.List()...)
 
 	cfg := &config.App{
-		Logger: logger.DefaultLogger,
+		Logger:                  logger.DefaultLogger,
+		DefaultResponseRenderer: config.JSONAPIRenderer,
 	}
 
 	s := app.Server{

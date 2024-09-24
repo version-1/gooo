@@ -6,7 +6,7 @@ import (
 
 type App struct {
 	Logger                  logger.Logger
-	DefaultResponseRenderer string
+	DefaultResponseRenderer ResponseRenderer
 }
 
 type ResponseRenderer string
