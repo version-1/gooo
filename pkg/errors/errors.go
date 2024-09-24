@@ -37,12 +37,12 @@ func (e Error) Format(f fmt.State, c rune) {
 		if f.Flag('+') {
 			fmt.Fprintf(f, "%+v\n", e.stack)
 			return
+		} else {
+			fmt.Fprintf(f, "%s", e.Error())
+			return
 		}
-		fallthrough
 	case 's':
-		fmt.Fprintf(f, "%s", e.msg)
-	case 'q':
-		fmt.Fprintf(f, "%q", e.msg)
+		fmt.Fprintf(f, "%s", e.Error())
 	}
 }
 
@@ -54,7 +54,7 @@ func (st *stack) Format(f fmt.State, c rune) {
 		for _, fr := range *st {
 			output := fr.String()
 			if output != "" {
-				fmt.Fprintln(f, fr.String())
+				fmt.Fprintln(f, output)
 			}
 		}
 	}
@@ -85,8 +85,13 @@ func (f *frame) collect() {
 
 func (f frame) String() string {
 	if f.file == nil {
+		f.collect()
+	}
+
+	if f.file == nil {
 		return ""
 	}
+
 	return fmt.Sprintf("%s:%s:%d", f.File(), f.FuncName(), f.Line())
 }
 
