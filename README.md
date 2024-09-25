@@ -10,6 +10,7 @@ Go Full Stack Framework
 ### Features
 
 - App
+  - HHTTP Server
 - Controller
   - Middleware
     - CORS
@@ -22,9 +23,11 @@ Go Full Stack Framework
     1. raw rendering support
 - Payload
 - ORM
+  1. Simple CRUD Operator
+  1. Query Logging
 - Generator
   1. Schema generator
 - Migration
-- Seed
+- Seeder
 - Error
 - Testing
