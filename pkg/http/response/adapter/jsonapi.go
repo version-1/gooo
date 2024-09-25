@@ -2,15 +2,13 @@ package adapter
 
 import (
 	"fmt"
-	"net/http"
 
 	goooerrors "github.com/version-1/gooo/pkg/errors"
 	"github.com/version-1/gooo/pkg/presenter/jsonapi"
 )
 
 type JSONAPI struct {
-	payload any
-	meta    jsonapi.Serializer
+	meta jsonapi.Serializer
 }
 
 type JSONAPIOption struct {
@@ -25,55 +23,17 @@ func (e JSONAPIInvalidTypeError) Error() string {
 	return fmt.Sprintf("Invalid payload type. Payload must implement jsonapi.Resourcer. got: %T", e.Payload)
 }
 
-func (a JSONAPI) Render(w http.ResponseWriter, payload any, options ...any) error {
-	b, err := a.resolve(payload, options...)
-	if err != nil {
-		return err
-	}
-
-	w.Header().Set("Content-Type", "application/vnd.api+json")
-	_, err = w.Write(b)
-	return err
+func (a JSONAPI) ContentType() string {
+	return "application/vnd.api+json"
 }
 
-func (a JSONAPI) RenderError(w http.ResponseWriter, e error, options ...any) error {
-	b, errors, err := a.resolveError(e, options...)
-	if err != nil {
-		fmt.Println("error ==========", err)
-		return err
-	}
-
-	w.Header().Set("Content-Type", "application/vnd.api+json")
-	if len(errors) > 0 {
-		w.WriteHeader(errors[0].Status)
-	}
-	_, err = w.Write(b)
-	return err
+func (a *JSONAPI) Render(payload any, options ...any) ([]byte, error) {
+	return a.resolve(payload, options...)
 }
 
-func (a JSONAPI) InternalServerError(w http.ResponseWriter, e error, options ...any) error {
-	err := jsonapi.NewInternalServerError(e)
-	return a.RenderError(w, err, options...)
-}
-
-func (a JSONAPI) BadRequest(w http.ResponseWriter, e error, options ...any) error {
-	err := jsonapi.NewBadRequest(e)
-	return a.RenderError(w, err, options...)
-}
-
-func (a JSONAPI) NotFound(w http.ResponseWriter, e error, options ...any) error {
-	err := jsonapi.NewNotFound(e)
-	return a.RenderError(w, err, options...)
-}
-
-func (a JSONAPI) Unauthorized(w http.ResponseWriter, e error, options ...any) error {
-	err := jsonapi.NewUnauthorized(e)
-	return a.RenderError(w, err, options...)
-}
-
-func (a JSONAPI) Forbidden(w http.ResponseWriter, e error, options ...any) error {
-	err := jsonapi.NewForbidden(e)
-	return a.RenderError(w, err, options...)
+func (a *JSONAPI) RenderError(e error, options ...any) ([]byte, error) {
+	b, _, err := a.resolveError(e, options...)
+	return b, err
 }
 
 func (a JSONAPI) resolve(payload any, options ...any) ([]byte, error) {
@@ -101,7 +61,7 @@ func (a JSONAPI) resolve(payload any, options ...any) ([]byte, error) {
 
 		return []byte(s), err
 	default:
-		return []byte{}, JSONAPIInvalidTypeError{Payload: v}
+		return []byte{}, goooerrors.Wrap(JSONAPIInvalidTypeError{Payload: v})
 	}
 }
 
@@ -118,7 +78,7 @@ func (a JSONAPI) resolveError(e error, options ...any) ([]byte, []jsonapi.Error,
 		obj := v.ToJSONAPIError()
 		errors := jsonapi.Errors{obj}
 		s, err := jsonapi.NewErrors(errors).Serialize()
-		return []byte(s), errors, goooerrors.New(err.Error())
+		return []byte(s), errors, err
 	default:
 		obj := jsonapi.NewErrorResponse(v).ToJSONAPIError()
 		errors := jsonapi.Errors{obj}

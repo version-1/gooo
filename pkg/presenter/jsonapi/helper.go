@@ -1,27 +1,10 @@
 package jsonapi
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/google/uuid"
 )
-
-type Attributes[T any] struct {
-	v T
-}
-
-func NewAttributes[T any](v T) Attributes[T] {
-	return Attributes[T]{v}
-}
-
-func (v Attributes[T]) JSONAPISerialize() (string, error) {
-	if b, err := json.Marshal(v); err != nil {
-		return "", err
-	} else {
-		return string(b), nil
-	}
-}
 
 type Resourcable interface {
 	ID() string
@@ -42,14 +25,10 @@ func (v ResourceTemplate) ToJSONAPIResource() (data Resource, included Resources
 	}, t.Resources()
 }
 
-type resourcerer interface {
-	Resourcer() Resourcer
-}
-
-func ToResourcerList[T resourcerer](list []T) []Resourcer {
+func ToResourcerList[T Resourcer](list []T) []Resourcer {
 	resources := make([]Resourcer, 0, len(list))
 	for _, r := range list {
-		resources = append(resources, r.Resourcer())
+		resources = append(resources, Resourcer(r))
 	}
 	return resources
 }
@@ -95,7 +74,7 @@ func (e ErrorResponse) Error() string {
 func (e ErrorResponse) ToJSONAPIError() Error {
 	return Error{
 		ID:     uuid.New().String(),
-		Title:  "Internal Server Error",
+		Title:  e.Title(),
 		Status: http.StatusInternalServerError,
 		Code:   e.Code(),
 		Detail: e.Error(),

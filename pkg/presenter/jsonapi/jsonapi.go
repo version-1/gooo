@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	goooerrors "github.com/version-1/gooo/pkg/errors"
 )
 
 type Resourcer interface {
@@ -59,26 +61,26 @@ func (j Root[T]) Serialize() (string, error) {
 
 	data, err := j.Data.JSONAPISerialize()
 	if err != nil {
-		return "", err
+		return "", goooerrors.Wrap(err)
 	}
 	fields = append(fields, fmt.Sprintf("\"data\": %s", data))
 
 	if j.Meta != nil {
 		meta, err := j.Meta.JSONAPISerialize()
 		if err != nil {
-			return "", err
+			return "", goooerrors.Wrap(err)
 		}
 		fields = append(fields, fmt.Sprintf("\"meta\": %s", meta))
 	}
 
 	errors, err := j.Errors.JSONAPISerialize()
 	if err != nil {
-		return "", err
+		return "", goooerrors.Wrap(err)
 	}
 	fields = append(fields, fmt.Sprintf("\"errors\": %s", errors))
 	included, err := j.Included.JSONAPISerialize()
 	if err != nil {
-		return "", err
+		return "", goooerrors.Wrap(err)
 	}
 	fields = append(fields, fmt.Sprintf("\"included\": %s", included))
 
@@ -86,7 +88,7 @@ func (j Root[T]) Serialize() (string, error) {
 
 	var out bytes.Buffer
 	if err := json.Indent(&out, []byte(s), "", "\t"); err != nil {
-		return "", err
+		return "", goooerrors.Wrap(err)
 	}
 
 	return out.String(), nil
@@ -106,12 +108,17 @@ type Serializers []Serializer
 
 func (s Serializers) JSONAPISerialize() (string, error) {
 	str := "["
-	for _, s := range s {
-		json, err := s.JSONAPISerialize()
+	for i, serializer := range s {
+		json, err := serializer.JSONAPISerialize()
 		if err != nil {
-			return "", err
+			return "", goooerrors.Wrap(err)
 		}
-		str += json + ","
+
+		comma := ""
+		if i != len(s)-1 {
+			comma = ","
+		}
+		str += json + comma
 	}
 	str += "]"
 	return str, nil
@@ -120,6 +127,22 @@ func (s Serializers) JSONAPISerialize() (string, error) {
 type Resources struct {
 	Data   []Resource
 	keyMap map[string]bool
+}
+
+type Attributes[T any] struct {
+	v T
+}
+
+func NewAttributes[T any](v T) Attributes[T] {
+	return Attributes[T]{v}
+}
+
+func (a Attributes[T]) JSONAPISerialize() (string, error) {
+	if b, err := json.Marshal(a.v); err != nil {
+		return "", err
+	} else {
+		return string(b), nil
+	}
 }
 
 type resourceList []Resource
@@ -176,16 +199,16 @@ type Resource struct {
 func (j Resource) JSONAPISerialize() (string, error) {
 	attrs, err := j.Attributes.JSONAPISerialize()
 	if err != nil {
-		return "", err
+		return "", goooerrors.Wrap(err)
 	}
 
 	r, err := j.Relationships.JSONAPISerialize()
 	if err != nil {
-		return "", err
+		return "", goooerrors.Wrap(err)
 	}
 
 	return `{
-		"id": ` + j.ID + `,
+		"id": "` + j.ID + `",
 		"type": "` + j.Type + `",
 		"attributes": ` + attrs + `,
 		"relationships": ` + r + `
@@ -199,7 +222,7 @@ func (j Relationships) JSONAPISerialize() (string, error) {
 	for k, r := range j {
 		json, err := r.JSONAPISerialize()
 		if err != nil {
-			return "", err
+			return "", goooerrors.Wrap(err)
 		}
 		lines = append(lines, "\""+k+"\": "+json)
 	}
@@ -218,7 +241,7 @@ func (j RelationshipHasMany) JSONAPISerialize() (string, error) {
 	for i := range j.Data {
 		json, err := j.Data[i].JSONAPISerialize()
 		if err != nil {
-			return "", err
+			return "", goooerrors.Wrap(err)
 		}
 
 		lines = append(lines, json)
@@ -239,7 +262,7 @@ type Relationship struct {
 func (j Relationship) JSONAPISerialize() (string, error) {
 	json, err := j.Data.JSONAPISerialize()
 	if err != nil {
-		return "", err
+		return "", goooerrors.Wrap(err)
 	}
 
 	return `{

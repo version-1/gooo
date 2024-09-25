@@ -10,7 +10,7 @@ Go Full Stack Framework
 ### Features
 
 - App
-  - HHTTP Server
+  - HTTP Server
 - Controller
   - Middleware
     - CORS

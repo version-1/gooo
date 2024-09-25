@@ -11,6 +11,13 @@ type Error struct {
 	stack *stack
 }
 
+func Wrap(err error) *Error {
+	return &Error{
+		err:   err,
+		stack: captureStack(),
+	}
+}
+
 func New(msg string) *Error {
 	return &Error{
 		err:   errors.New(msg),
@@ -30,6 +37,8 @@ func (e Error) Format(f fmt.State, c rune) {
 	switch c {
 	case 'v':
 		if f.Flag('+') {
+			fmt.Fprintf(f, "%s\n", e.Error())
+			fmt.Fprintln(f, "")
 			fmt.Fprintf(f, "%+v\n", e.stack)
 			return
 		} else {

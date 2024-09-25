@@ -18,12 +18,17 @@ func (j Errors) Error() string {
 
 func (j Errors) JSONAPISerialize() (string, error) {
 	str := "["
-	for _, e := range j {
+	for i, e := range j {
 		json, err := e.JSONAPISerialize()
 		if err != nil {
 			return "", err
 		}
-		str += json + ","
+
+		comma := ""
+		if i != len(j)-1 {
+			comma = ","
+		}
+		str += json + comma
 	}
 	str += "]"
 

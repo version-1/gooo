@@ -5,31 +5,35 @@ import (
 	"net/http"
 
 	"github.com/version-1/gooo/pkg/http/response/adapter"
+	"github.com/version-1/gooo/pkg/logger"
 )
 
 var _ http.ResponseWriter = &Response{}
 
-var jsonapiAdapter Renderer = adapter.JSONAPI{}
-var rawAdapter Renderer = adapter.Raw{}
+var jsonapiAdapter Renderer = &adapter.JSONAPI{}
+var rawAdapter Renderer = &adapter.Raw{}
 
 type Renderer interface {
-	Render(w http.ResponseWriter, payload any, options ...any) error
-	RenderError(w http.ResponseWriter, err error, options ...any) error
-	InternalServerError(w http.ResponseWriter, err error, options ...any) error
-	NotFound(w http.ResponseWriter, err error, options ...any) error
-	BadRequest(w http.ResponseWriter, err error, options ...any) error
-	Unauthorized(w http.ResponseWriter, err error, options ...any) error
-	Forbidden(w http.ResponseWriter, err error, options ...any) error
+	ContentType() string
+	Render(payload any, options ...any) ([]byte, error)
+	RenderError(err error, options ...any) ([]byte, error)
+}
+
+type Logger interface {
+	Infof(format string, args ...any)
+	Errorf(format string, args ...any)
 }
 
 type Options struct {
 	Adapter string
+	logger  Logger
 }
 
 type Response struct {
 	ResponseWriter http.ResponseWriter
 	adapter        Renderer
 	options        Options
+	statusCode     int
 }
 
 func New(r http.ResponseWriter, opts Options) *Response {
@@ -45,15 +49,25 @@ func New(r http.ResponseWriter, opts Options) *Response {
 		ResponseWriter: r,
 		adapter:        adp,
 		options:        opts,
+		statusCode:     http.StatusOK,
 	}
 }
 
-func (r Response) Adapter() Renderer {
-	if r.adapter != nil {
-		return r.adapter
+func (r Response) logger() Logger {
+	if r.options.logger != nil {
+		return r.options.logger
 	}
 
-	return rawAdapter
+	return logger.DefaultLogger
+}
+
+func (r *Response) Adapter() Renderer {
+	if r.adapter == nil {
+		r.adapter = rawAdapter
+	}
+
+	r.Header().Set("Content-Type", r.adapter.ContentType())
+	return r.adapter
 }
 
 func (r *Response) SetAdapter(adp Renderer) *Response {
@@ -74,21 +88,27 @@ func (r *Response) Body(payload string) *Response {
 	return r
 }
 
-func (r *Response) Status(code int) *Response {
-	r.ResponseWriter.WriteHeader(code)
-	return r
+func (r *Response) StatusCode() int {
+	return r.statusCode
 }
 
 func (r *Response) Render(payload any, options ...any) error {
-	return r.Adapter().Render(r.ResponseWriter, payload, options...)
+	r.logger().Errorf("%+v", payload)
+	b, err := r.Adapter().Render(payload, options...)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.Write(b)
+	return err
 }
 
 func (r *Response) RenderError(payload error, options ...any) error {
-	return r.Adapter().Render(r.ResponseWriter, payload, options...)
+	return r.renderErrorWith(func() {}, payload, options...)
 }
 
 func (r *Response) SetHeader(key, value string) *Response {
-	r.ResponseWriter.Header().Set(key, value)
+	r.Header().Set(key, value)
 	return r
 }
 
@@ -102,44 +122,58 @@ func (r *Response) Write(b []byte) (int, error) {
 
 func (r *Response) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
+	r.statusCode = statusCode
 }
 
-func (r *Response) InternalServerError() *Response {
-	return r.Status(http.StatusInternalServerError)
+func (r *Response) InternalServerError() {
+	r.WriteHeader(http.StatusInternalServerError)
 }
 
-func (r *Response) NotFound() *Response {
-	return r.Status(http.StatusNotFound)
+func (r *Response) NotFound() {
+	r.WriteHeader(http.StatusNotFound)
 }
 
-func (r *Response) BadRequest() *Response {
-	return r.Status(http.StatusBadRequest)
+func (r *Response) BadRequest() {
+	r.WriteHeader(http.StatusBadRequest)
 }
 
-func (r *Response) Unauthorized() *Response {
-	return r.Status(http.StatusUnauthorized)
+func (r *Response) Unauthorized() {
+	r.WriteHeader(http.StatusUnauthorized)
 }
 
-func (r *Response) Forbidden() *Response {
-	return r.Status(http.StatusForbidden)
+func (r *Response) Forbidden() {
+	r.WriteHeader(http.StatusForbidden)
+}
+
+func (r *Response) renderErrorWith(fn func(), e error, options ...any) error {
+	r.logger().Errorf("%+v", e)
+	b, err := r.Adapter().RenderError(e, options...)
+	if err != nil {
+		return err
+	}
+
+	fn()
+
+	_, err = r.Write(b)
+	return err
 }
 
 func (r *Response) InternalServerErrorWith(e error, options ...any) error {
-	return r.Adapter().InternalServerError(r.ResponseWriter, e, options...)
+	return r.renderErrorWith(r.InternalServerError, e, options...)
 }
 
 func (r *Response) NotFoundWith(e error, options ...any) error {
-	return r.Adapter().NotFound(r.ResponseWriter, e, options...)
+	return r.renderErrorWith(r.NotFound, e, options...)
 }
 
 func (r *Response) BadRequestWith(e error, options ...any) error {
-	return r.Adapter().BadRequest(r.ResponseWriter, e, options...)
+	return r.renderErrorWith(r.BadRequest, e, options...)
 }
 
 func (r *Response) UnauthorizedWith(e error, options ...any) error {
-	return r.Adapter().Unauthorized(r.ResponseWriter, e, options...)
+	return r.renderErrorWith(r.Unauthorized, e, options...)
 }
 
 func (r *Response) ForbiddenWith(e error, options ...any) error {
-	return r.Adapter().Forbidden(r.ResponseWriter, e, options...)
+	return r.renderErrorWith(r.Forbidden, e, options...)
 }

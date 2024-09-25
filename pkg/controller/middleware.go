@@ -12,6 +12,20 @@ import (
 	"github.com/version-1/gooo/pkg/logger"
 )
 
+type Middlewares []Middleware
+
+func (m *Middlewares) Append(mw ...Middleware) {
+	*m = append(*m, mw...)
+}
+
+func (m *Middlewares) Prepend(mw ...Middleware) {
+	list := mw
+	for _, it := range *m {
+		list = append(list, it)
+	}
+	*m = list
+}
+
 type Middleware struct {
 	Name string
 	If   func(*request.Request) bool
@@ -36,6 +50,16 @@ func RequestLogger(logger logger.Logger) Middleware {
 	}
 }
 
+func ResponseLogger(logger logger.Logger) Middleware {
+	return Middleware{
+		If: Always,
+		Do: func(w *response.Response, r *request.Request) bool {
+			logger.Infof("Status: %d", w.StatusCode())
+			return true
+		},
+	}
+}
+
 func RequestBodyLogger(logger logger.Logger) Middleware {
 	return Middleware{
 		If: Always,
@@ -49,7 +73,9 @@ func RequestBodyLogger(logger logger.Logger) Middleware {
 			}
 
 			io.Copy(w, io.MultiReader(bytes.NewReader(b), r.Request.Body))
-			logger.Infof("body: %s", b)
+			if len(b) > 0 {
+				logger.Infof("body: %s", b)
+			}
 			return true
 		},
 	}
@@ -89,6 +115,30 @@ func WithContext(callbacks ...func(r *request.Request) *request.Request) Middlew
 			}
 
 			return true
+		},
+	}
+}
+
+func RequestHandler(handlers []Handler) Middleware {
+	return Middleware{
+		If: Always,
+		Do: func(w *response.Response, r *request.Request) bool {
+			match := false
+			for _, handler := range handlers {
+				if handler.Match(r) {
+					if handler.BeforeHandler != nil {
+						(*handler.BeforeHandler)(w, r)
+					}
+					handler.Handler(w, r)
+					match = true
+					break
+				}
+			}
+			if !match {
+				w.NotFoundWith(fmt.Errorf("Not found endpoint: %s", r.Request.URL.Path))
+			}
+
+			return match
 		},
 	}
 }

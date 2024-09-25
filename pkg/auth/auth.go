@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -58,11 +59,12 @@ func (a JWTAuth[T]) Guard() controller.Middleware {
 			}
 
 			if expired {
-				w.Unauthorized().JSON(map[string]string{
+				w.JSON(map[string]string{
 					"code":   "auth:token_expired",
 					"error":  "Unauthorized",
 					"detail": err.Error(),
 				})
+				w.WriteHeader(http.StatusUnauthorized)
 				return false
 			}
 
@@ -83,11 +85,12 @@ func (a JWTAuth[T]) Guard() controller.Middleware {
 }
 
 func reportError(w *response.Response, e error) {
-	w.Unauthorized().JSON(
+	w.JSON(
 		map[string]string{
 			"code":   "unauthorized",
 			"error":  "Unauthorized",
 			"detail": e.Error(),
 		},
 	)
+	w.WriteHeader(http.StatusUnauthorized)
 }

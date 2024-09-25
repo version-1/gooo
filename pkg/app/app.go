@@ -57,27 +57,6 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-
-	var target *controller.Handler
-	for _, handler := range s.Handlers {
-		if handler.Match(rr) {
-			target = &handler
-			break
-		}
-	}
-
-	if target == nil {
-		http.NotFound(w, r)
-		return
-	}
-
-	rr.Handler = target
-	s.withRecover(target.String(), ww, rr, func() {
-		if target.BeforeHandler != nil {
-			(*target.BeforeHandler)(ww, rr)
-		}
-		target.Handler(ww, rr)
-	})
 }
 
 func WithDefaultMiddlewares(s *Server) {
@@ -90,8 +69,10 @@ func WithDefaultMiddlewares(s *Server) {
 				return r.WithContext(ctx)
 			},
 		),
-		controller.RequestBodyLogger(s.Logger()),
 		controller.RequestLogger(s.Logger()),
+		controller.RequestBodyLogger(s.Logger()),
+		controller.RequestHandler(s.Handlers),
+		controller.ResponseLogger(s.Logger()),
 	)
 }
 
@@ -102,6 +83,10 @@ func (s Server) Run(ctx gocontext.Context) {
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
+	}
+
+	if len(s.Handlers) == 0 {
+		panic("No handlers registered")
 	}
 	defer hs.Shutdown(ctx)
 

@@ -14,28 +14,39 @@ import (
 	"github.com/version-1/gooo/pkg/http/request"
 	"github.com/version-1/gooo/pkg/http/response"
 	"github.com/version-1/gooo/pkg/logger"
+	"github.com/version-1/gooo/pkg/presenter/jsonapi"
 )
 
 type Dummy struct {
+	ID     string    `json:"-"`
 	String string    `json:"string"`
 	Number int       `json:"number"`
 	Flag   bool      `json:"flag"`
 	Time   time.Time `json:"time"`
 }
 
-type DummyError struct {
+func (e Dummy) ToJSONAPIResource() (jsonapi.Resource, jsonapi.Resources) {
+	r := jsonapi.Resource{
+		ID:         e.ID,
+		Type:       "dummy",
+		Attributes: jsonapi.NewAttributes(e),
+	}
+
+	return r, jsonapi.Resources{}
 }
 
+type DummyError struct{}
+
 func (e DummyError) Error() string {
-	return "dummy error"
+	return "overridden error"
 }
 
 func (e DummyError) Code() string {
-	return "dummy_error"
+	return "overridden_error"
 }
 
 func (e DummyError) Title() string {
-	return "Dummy Error"
+	return "Overrridden Error"
 }
 
 func main() {
@@ -51,6 +62,13 @@ func main() {
 		Path: "/testing",
 		Handlers: []controller.Handler{
 			{
+				Path:   "/json",
+				Method: http.MethodGet,
+				Handler: func(w *response.Response, r *request.Request) {
+					w.JSON(map[string]string{"message": "ok"})
+				},
+			},
+			{
 				Path:   "/render",
 				Method: http.MethodGet,
 				Handler: func(w *response.Response, r *request.Request) {
@@ -61,8 +79,9 @@ func main() {
 						Time:   time.Now(),
 					}
 					if err := w.Render(data); err != nil {
+						fmt.Printf("error: %+v\n", err)
 						if err := w.InternalServerErrorWith(err); err != nil {
-							fmt.Printf("stacktrace ==========%+v\n", err)
+							panic(err)
 						}
 					}
 				},
@@ -77,10 +96,11 @@ func main() {
 				},
 			},
 			{
-				Path:   "/interal_server_error",
+				Path:   "/internal_server_error",
 				Method: http.MethodGet,
 				Handler: func(w *response.Response, r *request.Request) {
 					if err := w.InternalServerErrorWith(DummyError{}); err != nil {
+						fmt.Printf("error: %+v\n", err)
 						w.InternalServerErrorWith(err)
 					}
 				},
@@ -89,7 +109,7 @@ func main() {
 				Path:   "/bad_request",
 				Method: http.MethodGet,
 				Handler: func(w *response.Response, r *request.Request) {
-					if err := w.InternalServerErrorWith(DummyError{}); err != nil {
+					if err := w.BadRequestWith(DummyError{}); err != nil {
 						w.InternalServerErrorWith(err)
 					}
 				},
