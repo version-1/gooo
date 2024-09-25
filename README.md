@@ -22,6 +22,8 @@ Go Full Stack Framework
     1. raw rendering support
 - Payload
 - ORM
+- Generator
+  1. Schema generator
 - Migration
 - Seed
 - Error
