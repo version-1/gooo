@@ -96,7 +96,7 @@ func (f frame) String() string {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s:%d", f.File(), f.FuncName(), f.Line())
+	return fmt.Sprintf("%s. method: %s. line: %d", f.File(), f.FuncName(), f.Line())
 }
 
 func (f *frame) File() string {
@@ -118,13 +118,21 @@ func (f *frame) Line() int {
 }
 
 func (f *frame) FuncName() string {
+	n := func(s string) string {
+		for i := len(s) - 1; i > 0; i-- {
+			if s[i] == '.' {
+				return s[i+1:]
+			}
+		}
+		return s
+	}
 	if f.name != nil {
-		return *f.name
+		return n(*f.name)
 	}
 
 	f.collect()
 
-	return *f.name
+	return n(*f.name)
 }
 
 func captureStack() *stack {

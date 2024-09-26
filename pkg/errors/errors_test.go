@@ -4,69 +4,92 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	goootesting "github.com/version-1/gooo/pkg/testing"
 )
 
 func TestErrors(t *testing.T) {
 	err := New("msg")
 
-	tests := []struct {
-		name    string
-		subject func() string
-		expect  string
-	}{
-		// {
-		// 	name: "Stacktrace",
-		// 	subject: func() string {
-		// 		return err.StackTrace()
-		// 	},
-		// 	expect: strings.Join([]string{
-		// 		"/Users/admin/Projects/Private/gooo/pkg/errors/errors_test.go:github.com/version-1/gooo/pkg/errors.TestErrors:10",
-		// 		"/usr/local/Cellar/go/1.22.3/libexec/src/testing/testing.go:testing.tRunner:1689",
-		// 		"/usr/local/Cellar/go/1.22.3/libexec/src/runtime/asm_amd64.s:runtime.goexit:1695",
-		// 	}, "\n") + "\n",
-		// },
-		// {
-		// 	name: "Print Error with +v",
-		// 	subject: func() string {
-		// 		return fmt.Sprintf("%+v", err)
-		// 	},
-		// 	expect: strings.Join([]string{
-		// 		"pkg/errors : msg",
-		// 		"",
-		// 		"/Users/admin/Projects/Private/gooo/pkg/errors/errors_test.go:github.com/version-1/gooo/pkg/errors.TestErrors:10",
-		// 		"/usr/local/Cellar/go/1.22.3/libexec/src/testing/testing.go:testing.tRunner:1689",
-		// 		"/usr/local/Cellar/go/1.22.3/libexec/src/runtime/asm_amd64.s:runtime.goexit:1695",
-		// 	}, "\n") + "\n",
-		// },
+	test := goootesting.NewTable([]goootesting.Record[string, []string]{
 		{
-			name: "Print Error with v",
-			subject: func() string {
-				return fmt.Sprintf("%v", err)
+			Name: "Stacktrace",
+			Subject: func(_t *testing.T) string {
+				return err.StackTrace()
 			},
-			expect: "pkg/errors : msg",
-		},
-		{
-			name: "Print Error with s",
-			subject: func() string {
-				return fmt.Sprintf("%s", err)
+			Expect: func(t *testing.T) []string {
+				return []string{
+					"gooo/pkg/errors/errors_test.go. method: TestErrors. line: 12",
+					"src/testing/testing.go. method: tRunner. line: 1689",
+					"src/runtime/asm_amd64.s. method: goexit. line: 1695",
+					"",
+				}
 			},
-			expect: "pkg/errors : msg",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if got := test.subject(); strings.TrimSpace(got) != strings.TrimSpace(test.expect) {
-				t.Errorf("expected\n %s, got\n %s", test.expect, got)
-				fmt.Printf("expected len %d, expected got %d", len(test.expect), len(got))
-
-				for i, c := range test.expect {
-					if string(c) != string(got[i]) {
-						t.Errorf("%d. expected %s, got %s", i, string(c), string(got[i]))
-						break
+			Assert: func(t *testing.T, r *goootesting.Record[string, []string]) bool {
+				e := r.Expect(t)
+				lines := strings.Split(r.Subject(t), "\n")
+				for i, line := range lines {
+					if !strings.Contains(line, e[i]) {
+						t.Errorf("Expected(line %d) %s to contain %s", i, line, e[i])
+						return false
 					}
 				}
-			}
-		})
-	}
+				return true
+			},
+		},
+		{
+			Name: "Print Error with +v",
+			Subject: func(_t *testing.T) string {
+				return fmt.Sprintf("%+v", err)
+			},
+			Expect: func(t *testing.T) []string {
+				return []string{
+					"pkg/errors : msg",
+					"",
+					"gooo/pkg/errors/errors_test.go. method: TestErrors. line: 12",
+					"src/testing/testing.go. method: tRunner. line: 1689",
+					"src/runtime/asm_amd64.s. method: goexit. line: 1695",
+					"",
+					"",
+				}
+			},
+			Assert: func(t *testing.T, r *goootesting.Record[string, []string]) bool {
+				e := r.Expect(t)
+				lines := strings.Split(r.Subject(t), "\n")
+				for i, line := range lines {
+					if !strings.Contains(line, e[i]) {
+						t.Errorf("Expected(line %d) %s to contain %s", i, line, e[i])
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Name: "Print Error with v",
+			Subject: func(_t *testing.T) string {
+				return fmt.Sprintf("%v", err)
+			},
+			Expect: func(t *testing.T) []string {
+				return []string{"pkg/errors : msg"}
+			},
+			Assert: func(t *testing.T, r *goootesting.Record[string, []string]) bool {
+				return r.Subject(t) == r.Expect(t)[0]
+			},
+		},
+		{
+			Name: "Print Error with s",
+			Subject: func(_t *testing.T) string {
+				return fmt.Sprintf("%s", err)
+			},
+			Expect: func(t *testing.T) []string {
+				return []string{"pkg/errors : msg"}
+			},
+			Assert: func(t *testing.T, r *goootesting.Record[string, []string]) bool {
+				return r.Subject(t) == r.Expect(t)[0]
+			},
+		},
+	})
+
+	test.Run(t)
 }

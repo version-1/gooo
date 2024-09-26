@@ -20,7 +20,7 @@ type JSONAPIInvalidTypeError struct {
 }
 
 func (e JSONAPIInvalidTypeError) Error() string {
-	return fmt.Sprintf("Invalid payload type. Payload must implement jsonapi.Resourcer. got: %T", e.Payload)
+	return fmt.Sprintf("Payload must implement jsonapi.Resourcer or []jsonapi.Resourcer. got: %T", e.Payload)
 }
 
 func (a JSONAPI) ContentType() string {
@@ -44,7 +44,16 @@ func (a JSONAPI) resolve(payload any, options ...any) ([]byte, error) {
 		}
 	}
 
-	switch v := payload.(type) {
+	_payload := payload
+	if r, ok := payload.([]jsonapi.Resourcerable); ok {
+		list := []jsonapi.Resourcer{}
+		for _, ele := range r {
+			list = append(list, ele.Resourcer())
+		}
+		_payload = list
+	}
+
+	switch v := _payload.(type) {
 	case jsonapi.Resourcer:
 		data, includes := v.ToJSONAPIResource()
 		s, err := jsonapi.New(data, includes, meta).Serialize()

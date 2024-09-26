@@ -6,6 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
+type Resourcerable interface {
+	Resourcer() Resourcer
+}
+
 type Resourcable interface {
 	ID() string
 	Type() string
@@ -21,16 +25,8 @@ func (v ResourceTemplate) ToJSONAPIResource() (data Resource, included Resources
 	return Resource{
 		ID:         t.ID(),
 		Type:       t.Type(),
-		Attributes: NewAttributes(v),
+		Attributes: NewAttributes(t),
 	}, t.Resources()
-}
-
-func ToResourcerList[T Resourcer](list []T) []Resourcer {
-	resources := make([]Resourcer, 0, len(list))
-	for _, r := range list {
-		resources = append(resources, Resourcer(r))
-	}
-	return resources
 }
 
 type CodeGetter interface {
