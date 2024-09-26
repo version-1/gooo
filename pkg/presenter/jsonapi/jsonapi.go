@@ -77,12 +77,19 @@ func (j Root[T]) Serialize() (string, error) {
 	if err != nil {
 		return "", goooerrors.Wrap(err)
 	}
-	fields = append(fields, fmt.Sprintf("\"errors\": %s", errors))
+
+	if errors != "[]" {
+		fields = append(fields, fmt.Sprintf("\"errors\": %s", errors))
+	}
+
 	included, err := j.Included.JSONAPISerialize()
 	if err != nil {
 		return "", goooerrors.Wrap(err)
 	}
-	fields = append(fields, fmt.Sprintf("\"included\": %s", included))
+
+	if included != "[]" {
+		fields = append(fields, fmt.Sprintf("\"included\": %s", included))
+	}
 
 	s := fmt.Sprintf("{\n%s\n}", strings.Join(fields, ", \n"))
 
@@ -207,12 +214,15 @@ func (j Resource) JSONAPISerialize() (string, error) {
 		return "", goooerrors.Wrap(err)
 	}
 
-	return `{
-		"id": "` + j.ID + `",
-		"type": "` + j.Type + `",
-		"attributes": ` + attrs + `,
-		"relationships": ` + r + `
-	}`, nil
+	list := []string{}
+	list = append(list, fmt.Sprintf(`"id": "%s"`, j.ID))
+	list = append(list, fmt.Sprintf(`"type": "%s"`, j.Type))
+	list = append(list, fmt.Sprintf(`"attributes": %s`, attrs))
+	if r != "{}" {
+		list = append(list, fmt.Sprintf(`"relationships": %s`, r))
+	}
+
+	return "{\n" + strings.Join(list, ", \n") + "\n}", nil
 }
 
 type Relationships map[string]Serializer

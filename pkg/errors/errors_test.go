@@ -14,22 +14,23 @@ func TestErrors(t *testing.T) {
 	test := goootesting.NewTable([]goootesting.Record[string, []string]{
 		{
 			Name: "Stacktrace",
-			Subject: func(_t *testing.T) string {
-				return err.StackTrace()
+			Subject: func(_t *testing.T) (string, error) {
+				return err.StackTrace(), nil
 			},
-			Expect: func(t *testing.T) []string {
+			Expect: func(t *testing.T) ([]string, error) {
 				return []string{
 					"gooo/pkg/errors/errors_test.go. method: TestErrors. line: 12",
 					"src/testing/testing.go. method: tRunner. line: 1689",
 					"src/runtime/asm_amd64.s. method: goexit. line: 1695",
 					"",
-				}
+				}, nil
 			},
 			Assert: func(t *testing.T, r *goootesting.Record[string, []string]) bool {
-				e := r.Expect(t)
-				lines := strings.Split(r.Subject(t), "\n")
+				e, _ := r.Expect(t)
+				s, _ := r.Subject(t)
+				lines := strings.Split(s, "\n")
 				for i, line := range lines {
-					if !strings.Contains(line, e[i]) {
+					if !strings.HasSuffix(line, e[i]) {
 						t.Errorf("Expected(line %d) %s to contain %s", i, line, e[i])
 						return false
 					}
@@ -39,10 +40,10 @@ func TestErrors(t *testing.T) {
 		},
 		{
 			Name: "Print Error with +v",
-			Subject: func(_t *testing.T) string {
-				return fmt.Sprintf("%+v", err)
+			Subject: func(_t *testing.T) (string, error) {
+				return fmt.Sprintf("%+v", err), nil
 			},
-			Expect: func(t *testing.T) []string {
+			Expect: func(t *testing.T) ([]string, error) {
 				return []string{
 					"pkg/errors : msg",
 					"",
@@ -51,13 +52,14 @@ func TestErrors(t *testing.T) {
 					"src/runtime/asm_amd64.s. method: goexit. line: 1695",
 					"",
 					"",
-				}
+				}, nil
 			},
 			Assert: func(t *testing.T, r *goootesting.Record[string, []string]) bool {
-				e := r.Expect(t)
-				lines := strings.Split(r.Subject(t), "\n")
+				e, _ := r.Expect(t)
+				s, _ := r.Subject(t)
+				lines := strings.Split(s, "\n")
 				for i, line := range lines {
-					if !strings.Contains(line, e[i]) {
+					if !strings.HasSuffix(line, e[i]) {
 						t.Errorf("Expected(line %d) %s to contain %s", i, line, e[i])
 						return false
 					}
@@ -67,26 +69,30 @@ func TestErrors(t *testing.T) {
 		},
 		{
 			Name: "Print Error with v",
-			Subject: func(_t *testing.T) string {
-				return fmt.Sprintf("%v", err)
+			Subject: func(_t *testing.T) (string, error) {
+				return fmt.Sprintf("%v", err), nil
 			},
-			Expect: func(t *testing.T) []string {
-				return []string{"pkg/errors : msg"}
+			Expect: func(t *testing.T) ([]string, error) {
+				return []string{"pkg/errors : msg"}, nil
 			},
 			Assert: func(t *testing.T, r *goootesting.Record[string, []string]) bool {
-				return r.Subject(t) == r.Expect(t)[0]
+				e, _ := r.Expect(t)
+				s, _ := r.Subject(t)
+				return s == e[0]
 			},
 		},
 		{
 			Name: "Print Error with s",
-			Subject: func(_t *testing.T) string {
-				return fmt.Sprintf("%s", err)
+			Subject: func(_t *testing.T) (string, error) {
+				return fmt.Sprintf("%s", err), nil
 			},
-			Expect: func(t *testing.T) []string {
-				return []string{"pkg/errors : msg"}
+			Expect: func(t *testing.T) ([]string, error) {
+				return []string{"pkg/errors : msg"}, nil
 			},
 			Assert: func(t *testing.T, r *goootesting.Record[string, []string]) bool {
-				return r.Subject(t) == r.Expect(t)[0]
+				e, _ := r.Expect(t)
+				s, _ := r.Subject(t)
+				return s == e[0]
 			},
 		},
 	})

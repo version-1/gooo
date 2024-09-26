@@ -4,8 +4,8 @@ import "testing"
 
 type Record[A any, E any] struct {
 	Name    string
-	Subject func(t *testing.T) A
-	Expect  func(t *testing.T) E
+	Subject func(t *testing.T) (A, error)
+	Expect  func(t *testing.T) (E, error)
 	Assert  func(t *testing.T, r *Record[A, E]) bool
 }
 

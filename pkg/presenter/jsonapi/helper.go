@@ -136,3 +136,17 @@ func NewForbidden(err error) Error {
 
 	return e
 }
+
+type Resourcers []Resourcer
+
+func (r Resourcers) ToJSONAPIResource() (Resources, Resources) {
+	list := Resources{}
+	includes := Resources{}
+	for _, ele := range r {
+		re, appending := ele.ToJSONAPIResource()
+		list.Append(re)
+		includes.Append(appending.Data...)
+	}
+
+	return list, includes
+}
