@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const pkgName = "pkg/http/client"
+
 type Config struct {
 	BaseURI string
 	Token   string
@@ -19,6 +21,7 @@ type Config struct {
 
 type Logger interface {
 	Infof(string, ...any)
+	Debugf(string, ...any)
 }
 
 type Client struct {
@@ -106,7 +109,7 @@ func (r *Request) UnmarshalBody(res *http.Response, v any) error {
 		return err
 	}
 
-	r.Logger().Infof("response body: %s", string(buf))
+	r.Logger().Debugf("%s: response body: %s", pkgName, string(buf))
 
 	if err = json.Unmarshal(buf, &v); err != nil {
 		return err
@@ -131,8 +134,8 @@ func Do[K, V any](ctx context.Context, d Doer, body *K, response *V) error {
 		return err
 	}
 
-	d.Logger().Infof("request uri: %s, method: %s", d.RequestURI(), d.Method())
-	d.Logger().Infof("request body: %s", string(b))
+	d.Logger().Debugf("%s: request uri: %s, method: %s", pkgName, d.RequestURI(), d.Method())
+	d.Logger().Debugf("%s: request body: %s", pkgName, string(b))
 
 	var reqBody io.Reader = nil
 	if body != nil && (d.Method() == http.MethodPost || d.Method() == http.MethodPut || d.Method() == http.MethodPatch) {
@@ -157,7 +160,7 @@ func Do[K, V any](ctx context.Context, d Doer, body *K, response *V) error {
 	if err != nil {
 		return err
 	}
-	d.Logger().Infof("response status: %s", res.Status)
+	d.Logger().Debugf("%s: response status: %s", pkgName, res.Status)
 
 	if err := d.UnmarshalBody(res, response); err != nil {
 		return err

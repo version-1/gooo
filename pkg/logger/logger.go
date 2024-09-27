@@ -12,9 +12,23 @@ type Logger interface {
 	Fatalf(format string, args ...interface{})
 }
 
-type defaultLogger struct{}
+type defaultLogger struct {
+	level LogLevel
+}
 
-var DefaultLogger = defaultLogger{}
+type LogLevel int
+
+const (
+	LogLevelDebug LogLevel = iota
+	LogLevelInfo
+	LogLevelWarn
+	LogLevelError
+	LogLevelFatal
+)
+
+var DefaultLogger = defaultLogger{
+	level: LogLevelInfo,
+}
 
 func InfoLabel() string {
 	return WithColor(Cyan, "[INFO]")
@@ -36,6 +50,10 @@ func DateFormat(t time.Time) string {
 	return WithColor(Gray, t.Format("2006-01-02T15:04:05 -0700"))
 }
 
+func (l *defaultLogger) SetLevel(level LogLevel) {
+	l.level = level
+}
+
 func (l defaultLogger) SInfof(format string, args ...any) string {
 	return fmt.Sprintf(fmt.Sprintf("%s %s %s\n", InfoLabel(), DateLabel(), format), args...)
 }
@@ -48,19 +66,38 @@ func (l defaultLogger) SWarnf(format string, args ...any) string {
 	return fmt.Sprintf(fmt.Sprintf("%s %s %s\n", WarnLabel(), DateLabel(), format), args...)
 }
 
+func (l defaultLogger) Debugf(format string, args ...interface{}) {
+	if l.level >= LogLevelInfo {
+		return
+	}
+	fmt.Printf(l.SInfof(format, args...))
+}
+
 func (l defaultLogger) Infof(format string, args ...interface{}) {
+	if l.level >= LogLevelInfo {
+		return
+	}
 	fmt.Printf(l.SInfof(format, args...))
 }
 
 func (l defaultLogger) Errorf(format string, args ...interface{}) {
+	if l.level >= LogLevelError {
+		return
+	}
 	fmt.Printf(l.SErrorf(format, args...))
 }
 
 func (l defaultLogger) Warnf(format string, args ...interface{}) {
+	if l.level >= LogLevelWarn {
+		return
+	}
 	fmt.Printf(l.SWarnf(format, args...))
 }
 
 func (l defaultLogger) Fatalf(format string, args ...interface{}) {
+	if l.level >= LogLevelFatal {
+		return
+	}
 	log.Fatalf(l.SErrorf(format, args...))
 }
 
