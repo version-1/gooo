@@ -1,11 +1,8 @@
 package jsonapi
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
-
-	goooerrors "github.com/version-1/gooo/pkg/errors"
 )
 
 type Errors []Error
@@ -51,27 +48,27 @@ func (j Error) Error() string {
 }
 
 func (j Error) JSONAPISerialize() (string, error) {
-	id, err := escape(j.ID)
+	id, err := Escape(j.ID)
 	if err != nil {
 		return "", err
 	}
 
-	status, err := escape(j.Status)
+	status, err := Escape(j.Status)
 	if err != nil {
 		return "", err
 	}
 
-	code, err := escape(j.Code)
+	code, err := Escape(j.Code)
 	if err != nil {
 		return "", err
 	}
 
-	title, err := escape(j.Title)
+	title, err := Escape(j.Title)
 	if err != nil {
 		return "", err
 	}
 
-	detail, err := escape(j.Detail)
+	detail, err := Escape(j.Detail)
 	if err != nil {
 		return "", err
 	}
@@ -85,15 +82,6 @@ func (j Error) JSONAPISerialize() (string, error) {
 	}
 
 	return fmt.Sprintf("{\n%s\n}", strings.Join(fields, ", \n")), nil
-}
-
-func escape(i any) (string, error) {
-	b, err := json.Marshal(i)
-	if err != nil {
-		return "", goooerrors.Wrap(err)
-	}
-
-	return string(b), nil
 }
 
 type Errable interface {
