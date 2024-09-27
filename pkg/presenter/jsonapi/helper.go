@@ -6,29 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type Resourcerable interface {
-	Resourcer() Resourcer
-}
-
-type Resourcable interface {
-	ID() string
-	Type() string
-	Resources() Resources
-}
-
-type ResourceTemplate struct {
-	Target Resourcable
-}
-
-func (v ResourceTemplate) ToJSONAPIResource() (data Resource, included Resources) {
-	t := v.Target
-	return Resource{
-		ID:         t.ID(),
-		Type:       t.Type(),
-		Attributes: NewAttributes(t),
-	}, t.Resources()
-}
-
 type CodeGetter interface {
 	Code() string
 }

@@ -21,15 +21,19 @@ type Root[T Serializer] struct {
 	Included Resources
 }
 
-func New(data Resource, includes Resources, meta Serializer) *Root[Resource] {
+func New(data Resource, includes Resources, meta Serializer) (*Root[Resource], error) {
+	if data.ID == "" {
+		return nil, goooerrors.Errorf("ID is required.")
+	}
+
 	return &Root[Resource]{
 		Data:     data,
 		Meta:     meta,
 		Included: includes,
-	}
+	}, nil
 }
 
-func NewMany(data Resources, includes Resources, meta Serializer) *Root[Resources] {
+func newMany(data Resources, includes Resources, meta Serializer) *Root[Resources] {
 	return &Root[Resources]{
 		Data:     data,
 		Meta:     meta,
@@ -37,16 +41,19 @@ func NewMany(data Resources, includes Resources, meta Serializer) *Root[Resource
 	}
 }
 
-func NewManyFrom[T Resourcer](list []T, meta Serializer) *Root[Resources] {
+func NewManyFrom[T Resourcer](list []T, meta Serializer) (*Root[Resources], error) {
 	includes := &Resources{}
 	resources := &Resources{}
-	for _, ele := range list {
+	for index, ele := range list {
 		r, childIncludes := ele.ToJSONAPIResource()
+		if r.ID == "" {
+			return nil, goooerrors.Errorf("ID is required. index: %d", index)
+		}
 		resources.Append(r)
 		includes.Append(childIncludes.Data...)
 	}
 
-	return NewMany(*resources, *includes, meta)
+	return newMany(*resources, *includes, meta), nil
 }
 
 func NewErrors(errors Errors) *Root[Nil] {

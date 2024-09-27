@@ -30,14 +30,6 @@ func (d dummy) ToJSONAPIResource() (jsonapi.Resource, jsonapi.Resources) {
 	}, jsonapi.Resources{}
 }
 
-type re struct {
-	d dummy
-}
-
-func (r re) Resourcer() jsonapi.Resourcer {
-	return r.d
-}
-
 func TestJSONAPIContentType(t *testing.T) {
 	a := JSONAPI{}
 	expect := "application/vnd.api+json"
@@ -64,46 +56,6 @@ func TestJSONAPIRender(t *testing.T) {
 					Bool:   true,
 					Time:   now,
 				})
-				if err != nil {
-					return []byte{}, err
-				}
-
-				buffer := &bytes.Buffer{}
-				err = json.Compact(buffer, s)
-				return buffer.Bytes(), err
-			},
-			Expect: func(t *testing.T) ([]byte, error) {
-				s := fmt.Sprintf(`{ "data": { "id": "%s", "type": "dummy", "attributes": { "string": "string", "number": 1, "bool": true, "time": "%s" } } }`, id1, now.Format(time.RFC3339Nano))
-				buffer := &bytes.Buffer{}
-				err := json.Compact(buffer, []byte(s))
-				return buffer.Bytes(), err
-			},
-			Assert: func(t *testing.T, r *goootesting.Record[[]byte, []byte]) bool {
-				e, err := r.Expect(t)
-				s, serr := r.Subject(t)
-
-				if !reflect.DeepEqual(e, s) {
-					t.Errorf("Expected %s, got %s", e, s)
-					return false
-				}
-
-				if serr != nil && err.Error() != serr.Error() {
-					t.Errorf("Expected %v, got %v", err, serr)
-					return false
-				}
-				return true
-			},
-		},
-		{
-			Name: "Render with jsonapi.Resourcerable",
-			Subject: func(t *testing.T) ([]byte, error) {
-				s, err := a.Render(re{dummy{
-					ID:     id1,
-					String: "string",
-					Number: 1,
-					Bool:   true,
-					Time:   now,
-				}})
 				if err != nil {
 					return []byte{}, err
 				}

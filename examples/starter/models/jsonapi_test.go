@@ -87,7 +87,7 @@ func TestResourcesSerialize(t *testing.T) {
 
 		users = append(users, *u)
 	}
-	root := jsonapi.NewManyFrom(
+	root, err := jsonapi.NewManyFrom(
 		users,
 		Meta{
 			Total:   3,
@@ -96,6 +96,9 @@ func TestResourcesSerialize(t *testing.T) {
 			HasPrev: true,
 		},
 	)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	s, err := root.Serialize()
 	if err != nil {
@@ -165,7 +168,10 @@ func TestResourceSerialize(t *testing.T) {
 
 	resource, includes := u.ToJSONAPIResource()
 
-	root := jsonapi.New(resource, includes, nil)
+	root, err := jsonapi.New(resource, includes, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	s, err := root.Serialize()
 	if err != nil {

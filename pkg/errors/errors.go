@@ -25,6 +25,13 @@ func New(msg string) *Error {
 	}
 }
 
+func Errorf(tmpl string, args ...any) *Error {
+	return &Error{
+		err:   errors.New(fmt.Sprintf(tmpl, args...)),
+		stack: captureStack(),
+	}
+}
+
 func (e Error) StackTrace() string {
 	return fmt.Sprintf("%+v", e.stack)
 }

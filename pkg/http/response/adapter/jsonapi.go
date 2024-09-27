@@ -31,6 +31,10 @@ func (a *JSONAPI) Render(payload any, options ...any) ([]byte, error) {
 	return resolve(payload, options...)
 }
 
+func RenderMany[T jsonapi.Resourcer](list []T, options ...any) ([]byte, error) {
+	return resolve(list, options...)
+}
+
 func (a *JSONAPI) RenderError(e error, options ...any) ([]byte, error) {
 	b, _, err := resolveError(e, options...)
 	return b, err
@@ -45,34 +49,30 @@ func resolve(payload any, options ...any) ([]byte, error) {
 	}
 
 	switch v := payload.(type) {
-	case jsonapi.Resourcerable:
-		data, includes := v.Resourcer().ToJSONAPIResource()
-		s, err := jsonapi.New(data, includes, meta).Serialize()
-
-		return []byte(s), err
-	case []jsonapi.Resourcerable:
-		rl := []jsonapi.Resourcer{}
-		for _, ele := range v {
-			rl = append(rl, ele.Resourcer())
-		}
-
-		list, includes := jsonapi.Resourcers(rl).ToJSONAPIResource()
-		s, err := jsonapi.NewMany(list, includes, meta).Serialize()
-
-		return []byte(s), err
 	case jsonapi.Resourcer:
 		data, includes := v.ToJSONAPIResource()
-		s, err := jsonapi.New(data, includes, meta).Serialize()
+		r, err := jsonapi.New(data, includes, meta)
+		if err != nil {
+			return []byte{}, err
+		}
+
+		s, err := r.Serialize()
 		return []byte(s), err
 	case []jsonapi.Resourcer:
-		list, includes := jsonapi.Resourcers(v).ToJSONAPIResource()
-		s, err := jsonapi.NewMany(list, includes, meta).Serialize()
+		r, err := jsonapi.NewManyFrom(v, meta)
+		if err != nil {
+			return []byte{}, err
+		}
 
+		s, err := r.Serialize()
 		return []byte(s), err
 	case jsonapi.Resourcers:
-		list, includes := v.ToJSONAPIResource()
-		s, err := jsonapi.NewMany(list, includes, meta).Serialize()
+		r, err := jsonapi.NewManyFrom(v, meta)
+		if err != nil {
+			return []byte{}, err
+		}
 
+		s, err := r.Serialize()
 		return []byte(s), err
 	default:
 		return []byte{}, goooerrors.Wrap(JSONAPIInvalidTypeError{Payload: v})
