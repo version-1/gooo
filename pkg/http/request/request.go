@@ -43,6 +43,10 @@ func (r Request) ParamInt(key string) (int, bool) {
 	return r.Handler.ParamInt(r.Request.URL.Path, key)
 }
 
+func (r Request) Query(key string) string {
+	return r.Request.URL.Query().Get(key)
+}
+
 func (r *Request) WithContext(ctx gocontext.Context) *Request {
 	r.Request = r.Request.WithContext(ctx)
 	return r
