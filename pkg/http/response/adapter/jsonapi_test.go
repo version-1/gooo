@@ -171,14 +171,14 @@ func TestJSONAPIRender(t *testing.T) {
 			Subject: func(t *testing.T) ([]byte, error) {
 				list := []jsonapi.Resourcer{
 					dummy{
-						ID:     id1,
+						ID:     id2,
 						String: "string",
 						Number: 1,
 						Bool:   true,
 						Time:   now,
 					},
 					dummy{
-						ID:     id2,
+						ID:     id1,
 						String: "string",
 						Number: 2,
 						Bool:   true,
@@ -216,9 +216,9 @@ func TestJSONAPIRender(t *testing.T) {
 					],
 					"meta": { "key": "value" }
 				}`,
-					id1,
-					now.Format(time.RFC3339Nano),
 					id2,
+					now.Format(time.RFC3339Nano),
+					id1,
 					now.Format(time.RFC3339Nano),
 					id3,
 					now.Format(time.RFC3339Nano),

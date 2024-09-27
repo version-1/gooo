@@ -43,7 +43,9 @@ func newMany(data Resources, includes Resources, meta Serializer) *Root[Resource
 }
 
 func NewManyFrom[T Resourcer](list []T, meta Serializer) (*Root[Resources], error) {
-	includes := &Resources{}
+	includes := &Resources{
+		shouldSort: true,
+	}
 	resources := &Resources{}
 	for index, ele := range list {
 		r, childIncludes := ele.ToJSONAPIResource()
@@ -141,11 +143,6 @@ func (s Serializers) JSONAPISerialize() (string, error) {
 	return str, nil
 }
 
-type Resources struct {
-	Data   []Resource
-	keyMap map[string]bool
-}
-
 type Attributes[T any] struct {
 	v T
 }
@@ -174,6 +171,12 @@ func (r resourceList) Less(i, j int) bool {
 }
 func (r resourceList) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
 
+type Resources struct {
+	Data       []Resource
+	keyMap     map[string]bool
+	shouldSort bool
+}
+
 func (j *Resources) Append(r ...Resource) {
 	if j.keyMap == nil {
 		j.keyMap = make(map[string]bool)
@@ -187,7 +190,9 @@ func (j *Resources) Append(r ...Resource) {
 		}
 	}
 
-	sort.Sort(resourceList(j.Data))
+	if j.shouldSort {
+		sort.Sort(resourceList(j.Data))
+	}
 }
 
 func (j Resources) JSONAPISerialize() (string, error) {
