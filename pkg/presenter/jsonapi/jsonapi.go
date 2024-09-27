@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	goooerrors "github.com/version-1/gooo/pkg/errors"
+	"github.com/version-1/gooo/pkg/logger"
 )
 
 type Resourcer interface {
@@ -102,6 +103,8 @@ func (j Root[T]) Serialize() (string, error) {
 
 	var out bytes.Buffer
 	if err := json.Indent(&out, []byte(s), "", "\t"); err != nil {
+		logger.DefaultLogger.Errorf("pkg/presenter/jsonapi: got error on pretty printinting json")
+		logger.DefaultLogger.Errorf("s: %s\n", s)
 		return "", goooerrors.Wrap(err)
 	}
 
@@ -222,7 +225,7 @@ func (j Resource) JSONAPISerialize() (string, error) {
 	}
 
 	list := []string{}
-	list = append(list, fmt.Sprintf(`"id": "%s"`, j.ID))
+	list = append(list, fmt.Sprintf(`"id": %s`, j.ID))
 	list = append(list, fmt.Sprintf(`"type": "%s"`, j.Type))
 	list = append(list, fmt.Sprintf(`"attributes": %s`, attrs))
 	if r != "{}" {
