@@ -126,18 +126,18 @@ func (obj User) validate() goooerrors.ValidationError {
 
 func (obj User) JSONAPISerialize() (string, error) {
 	lines := []string{
-		fmt.Sprintf("\"id\": %s", jsonapi.Stringify(obj.ID)),
-		fmt.Sprintf("\"username\": %s", jsonapi.Stringify(obj.Username)),
-		fmt.Sprintf("\"bio\": %s", jsonapi.Stringify(obj.Bio)),
-		fmt.Sprintf("\"email\": %s", jsonapi.Stringify(obj.Email)),
-		fmt.Sprintf("\"created_at\": %s", jsonapi.Stringify(obj.CreatedAt)),
-		fmt.Sprintf("\"updated_at\": %s", jsonapi.Stringify(obj.UpdatedAt)),
+		fmt.Sprintf("\"id\": %s", jsonapi.MustEscape(obj.ID)),
+		fmt.Sprintf("\"username\": %s", jsonapi.MustEscape(obj.Username)),
+		fmt.Sprintf("\"bio\": %s", jsonapi.MustEscape(obj.Bio)),
+		fmt.Sprintf("\"email\": %s", jsonapi.MustEscape(obj.Email)),
+		fmt.Sprintf("\"created_at\": %s", jsonapi.MustEscape(obj.CreatedAt)),
+		fmt.Sprintf("\"updated_at\": %s", jsonapi.MustEscape(obj.UpdatedAt)),
 	}
 	return fmt.Sprintf("{\n%s\n}", strings.Join(lines, ", \n")), nil
 }
 
 func (obj User) ToJSONAPIResource() (jsonapi.Resource, jsonapi.Resources) {
-	includes := &jsonapi.Resources{}
+	includes := &jsonapi.Resources{ShouldSort: true}
 	r := jsonapi.Resource{
 		ID:            jsonapi.Stringify(obj.ID),
 		Type:          "user",

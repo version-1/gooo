@@ -80,9 +80,7 @@ func main() {
 					}
 					if err := w.Render(data); err != nil {
 						fmt.Printf("error: %+v\n", err)
-						if err := w.InternalServerErrorWith(err); err != nil {
-							panic(err)
-						}
+						w.InternalServerErrorWith(err)
 					}
 				},
 			},
@@ -99,10 +97,7 @@ func main() {
 				Path:   "/internal_server_error",
 				Method: http.MethodGet,
 				Handler: func(w *response.Response, r *request.Request) {
-					if err := w.InternalServerErrorWith(DummyError{}); err != nil {
-						fmt.Printf("error: %+v\n", err)
-						w.InternalServerErrorWith(err)
-					}
+					w.InternalServerErrorWith(DummyError{})
 				},
 			},
 			{

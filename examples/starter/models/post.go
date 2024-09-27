@@ -123,19 +123,19 @@ func (obj Post) validate() goooerrors.ValidationError {
 
 func (obj Post) JSONAPISerialize() (string, error) {
 	lines := []string{
-		fmt.Sprintf("\"id\": %s", jsonapi.Stringify(obj.ID)),
-		fmt.Sprintf("\"user_id\": %s", jsonapi.Stringify(obj.UserID)),
-		fmt.Sprintf("\"title\": %s", jsonapi.Stringify(obj.Title)),
-		fmt.Sprintf("\"body\": %s", jsonapi.Stringify(obj.Body)),
-		fmt.Sprintf("\"status\": %s", jsonapi.Stringify(obj.Status)),
-		fmt.Sprintf("\"created_at\": %s", jsonapi.Stringify(obj.CreatedAt)),
-		fmt.Sprintf("\"updated_at\": %s", jsonapi.Stringify(obj.UpdatedAt)),
+		fmt.Sprintf("\"id\": %s", jsonapi.MustEscape(obj.ID)),
+		fmt.Sprintf("\"user_id\": %s", jsonapi.MustEscape(obj.UserID)),
+		fmt.Sprintf("\"title\": %s", jsonapi.MustEscape(obj.Title)),
+		fmt.Sprintf("\"body\": %s", jsonapi.MustEscape(obj.Body)),
+		fmt.Sprintf("\"status\": %s", jsonapi.MustEscape(obj.Status)),
+		fmt.Sprintf("\"created_at\": %s", jsonapi.MustEscape(obj.CreatedAt)),
+		fmt.Sprintf("\"updated_at\": %s", jsonapi.MustEscape(obj.UpdatedAt)),
 	}
 	return fmt.Sprintf("{\n%s\n}", strings.Join(lines, ", \n")), nil
 }
 
 func (obj Post) ToJSONAPIResource() (jsonapi.Resource, jsonapi.Resources) {
-	includes := &jsonapi.Resources{}
+	includes := &jsonapi.Resources{ShouldSort: true}
 	r := jsonapi.Resource{
 		ID:            jsonapi.Stringify(obj.ID),
 		Type:          "post",

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -110,12 +111,13 @@ func TestResourcesSerialize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedStr := strings.ReplaceAll(string(expected), "  ", "\t")
-	// trailing newline
-	expectedStr = string(expectedStr[0 : len(expectedStr)-1])
+	buf := &bytes.Buffer{}
+	if err := json.Compact(buf, expected); err != nil {
+		t.Fatal(err)
+	}
 
-	if err := diff(expectedStr, s); err != nil {
-		fmt.Printf("expect %s\n\n got %s", expectedStr, s)
+	if err := diff(buf.String(), s); err != nil {
+		fmt.Printf("expect %s\n\n got %s", buf.String(), s)
 		t.Fatal(err)
 	}
 }
@@ -183,12 +185,13 @@ func TestResourceSerialize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedStr := strings.ReplaceAll(string(expected), "  ", "\t")
-	// trailing newline
-	expectedStr = string(expectedStr[0 : len(expectedStr)-1])
+	buf := &bytes.Buffer{}
+	if err := json.Compact(buf, expected); err != nil {
+		t.Fatal(err)
+	}
 
-	if err := diff(expectedStr, s); err != nil {
-		fmt.Printf("expect %s\n\n got %s", expectedStr, s)
+	if err := diff(buf.String(), s); err != nil {
+		fmt.Printf("expect %s\n\n got %s", buf.String(), s)
 		t.Fatal(err)
 	}
 }

@@ -11,7 +11,7 @@ import (
 func (s SchemaTemplate) defineToJSONAPIResource() string {
 	primaryKey := s.Schema.PrimaryKey()
 
-	str := fmt.Sprintf(`includes := &jsonapi.Resources{}
+	str := fmt.Sprintf(`includes := &jsonapi.Resources{ShouldSort: true}
 		r := jsonapi.Resource{
 		  ID:   jsonapi.Stringify(obj.%s),
 			Type: "%s",
@@ -88,7 +88,7 @@ func (s SchemaTemplate) defineJSONAPISerialize() string {
 	fields := []string{}
 	for _, field := range s.Schema.ColumnFields() {
 		v := fmt.Sprintf(
-			`fmt.Sprintf("\"%s\": %s", jsonapi.Stringify(obj.%s))`,
+			`fmt.Sprintf("\"%s\": %s", jsonapi.MustEscape(obj.%s))`,
 			gooostrings.ToSnakeCase(field.Name),
 			"%s",
 			field.Name,

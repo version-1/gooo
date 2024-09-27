@@ -86,3 +86,5 @@ jobs:
         env:
           MIGRATION_PATH: examples/starter/db/migrations/*.sql
         run: go run examples/starter/cmd/migration/main.go down
+      - name: Run Test
+        run: go test ./examples/starter/...

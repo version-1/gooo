@@ -24,7 +24,7 @@ func (e JSONAPIInvalidTypeError) Error() string {
 }
 
 func (a JSONAPI) ContentType() string {
-	return "application/json"
+	return "application/vnd.api+json"
 }
 
 func (a *JSONAPI) Render(payload any, options ...any) ([]byte, error) {

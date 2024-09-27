@@ -44,7 +44,7 @@ func newMany(data Resources, includes Resources, meta Serializer) *Root[Resource
 
 func NewManyFrom[T Resourcer](list []T, meta Serializer) (*Root[Resources], error) {
 	includes := &Resources{
-		shouldSort: true,
+		ShouldSort: true,
 	}
 	resources := &Resources{}
 	for index, ele := range list {
@@ -104,8 +104,8 @@ func (j Root[T]) Serialize() (string, error) {
 	s := fmt.Sprintf("{\n%s\n}", strings.Join(fields, ", \n"))
 
 	var out bytes.Buffer
-	if err := json.Indent(&out, []byte(s), "", "\t"); err != nil {
-		logger.DefaultLogger.Errorf("pkg/presenter/jsonapi: got error on pretty printinting json")
+	if err := json.Compact(&out, []byte(s)); err != nil {
+		logger.DefaultLogger.Errorf("pkg/presenter/jsonapi: got error on compact json. %s")
 		logger.DefaultLogger.Errorf("%s\n", s)
 		return "", goooerrors.Wrap(err)
 	}
@@ -174,7 +174,7 @@ func (r resourceList) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
 type Resources struct {
 	Data       []Resource
 	keyMap     map[string]bool
-	shouldSort bool
+	ShouldSort bool
 }
 
 func (j *Resources) Append(r ...Resource) {
@@ -190,7 +190,7 @@ func (j *Resources) Append(r ...Resource) {
 		}
 	}
 
-	if j.shouldSort {
+	if j.ShouldSort {
 		sort.Sort(resourceList(j.Data))
 	}
 }
@@ -334,7 +334,7 @@ func (j ResourceIdentifier) JSONAPISerialize() (string, error) {
 	}
 	return `{
 		"id": ` + id + `,
-		"type": "` + t + `"
+		"type": ` + t + `
 	}`, nil
 }
 
@@ -342,13 +342,4 @@ type Nil struct{}
 
 func (n Nil) JSONAPISerialize() (string, error) {
 	return "null", nil
-}
-
-func Escape(i any) (string, error) {
-	b, err := json.Marshal(i)
-	if err != nil {
-		return "", goooerrors.Wrap(err)
-	}
-
-	return string(b), nil
 }
