@@ -18,6 +18,19 @@ func (m *Middlewares) Append(mw ...Middleware) {
 	*m = append(*m, mw...)
 }
 
+func (m *Middlewares) Insert(index int, mw Middleware) {
+	list := []Middleware{}
+	for i, it := range *m {
+		if i == index {
+			list = append(list, mw)
+		}
+
+		list = append(list, it)
+	}
+
+	*m = list
+}
+
 func (m *Middlewares) Prepend(mw ...Middleware) {
 	list := mw
 	for _, it := range *m {

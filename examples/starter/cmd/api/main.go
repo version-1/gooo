@@ -86,6 +86,39 @@ func main() {
 				},
 			},
 			{
+				Path:   "/render_many",
+				Method: http.MethodGet,
+				Handler: func(w *response.Response, r *request.Request) {
+					data := []jsonapi.Resourcer{
+						Dummy{
+							ID:     "1",
+							String: "Hello, World!",
+							Number: 42,
+							Flag:   true,
+							Time:   time.Now(),
+						},
+						Dummy{
+							ID:     "2",
+							String: "Hello, World!",
+							Number: 42,
+							Flag:   true,
+							Time:   time.Now(),
+						},
+						Dummy{
+							ID:     "3",
+							String: "Hello, World!",
+							Number: 42,
+							Flag:   true,
+							Time:   time.Now(),
+						},
+					}
+					if err := w.Render(data); err != nil {
+						fmt.Printf("error: %+v\n", err)
+						w.InternalServerErrorWith(err)
+					}
+				},
+			},
+			{
 				Path:   "/render_error",
 				Method: http.MethodGet,
 				Handler: func(w *response.Response, r *request.Request) {
