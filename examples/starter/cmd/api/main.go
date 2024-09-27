@@ -73,6 +73,7 @@ func main() {
 				Method: http.MethodGet,
 				Handler: func(w *response.Response, r *request.Request) {
 					data := Dummy{
+						ID:     "1",
 						String: "Hello, World!",
 						Number: 42,
 						Flag:   true,

@@ -74,28 +74,28 @@ func (l defaultLogger) Debugf(format string, args ...interface{}) {
 }
 
 func (l defaultLogger) Infof(format string, args ...interface{}) {
-	if l.level >= LogLevelInfo {
+	if l.level > LogLevelInfo {
 		return
 	}
 	fmt.Printf(l.SInfof(format, args...))
 }
 
 func (l defaultLogger) Errorf(format string, args ...interface{}) {
-	if l.level >= LogLevelError {
+	if l.level > LogLevelError {
 		return
 	}
 	fmt.Printf(l.SErrorf(format, args...))
 }
 
 func (l defaultLogger) Warnf(format string, args ...interface{}) {
-	if l.level >= LogLevelWarn {
+	if l.level > LogLevelWarn {
 		return
 	}
 	fmt.Printf(l.SWarnf(format, args...))
 }
 
 func (l defaultLogger) Fatalf(format string, args ...interface{}) {
-	if l.level >= LogLevelFatal {
+	if l.level > LogLevelFatal {
 		return
 	}
 	log.Fatalf(l.SErrorf(format, args...))
