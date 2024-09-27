@@ -93,7 +93,6 @@ func (r *Response) StatusCode() int {
 }
 
 func (r *Response) Render(payload any, options ...any) error {
-	r.logger().Errorf("%+v", payload)
 	b, err := r.Adapter().Render(payload, options...)
 	if err != nil {
 		return err
