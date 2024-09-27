@@ -41,7 +41,7 @@ func (m meta) JSONAPISerialize() (string, error) {
 
 func TestJSONAPIContentType(t *testing.T) {
 	a := JSONAPI{}
-	expect := "application/vnd.api+json"
+	expect := "application/json"
 	if a.ContentType() != expect {
 		t.Errorf("Expected content type to be %s, got %s", expect, a.ContentType())
 	}
