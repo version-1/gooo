@@ -157,8 +157,12 @@ func (r *Response) renderErrorWith(fn func(), e error, options ...any) error {
 	return err
 }
 
-func (r *Response) InternalServerErrorWith(e error, options ...any) error {
-	return r.renderErrorWith(r.InternalServerError, e, options...)
+func (r *Response) InternalServerErrorWith(e error, options ...any) {
+	err := r.renderErrorWith(r.InternalServerError, e, options...)
+	if err != nil {
+		r.logger().Errorf("got error on rendering internal_server_error")
+		panic(err)
+	}
 }
 
 func (r *Response) NotFoundWith(e error, options ...any) error {

@@ -1,8 +1,11 @@
 package jsonapi
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+
+	goooerrors "github.com/version-1/gooo/pkg/errors"
 )
 
 type Errors []Error
@@ -48,15 +51,49 @@ func (j Error) Error() string {
 }
 
 func (j Error) JSONAPISerialize() (string, error) {
+	id, err := escape(j.ID)
+	if err != nil {
+		return "", err
+	}
+
+	status, err := escape(j.Status)
+	if err != nil {
+		return "", err
+	}
+
+	code, err := escape(j.Code)
+	if err != nil {
+		return "", err
+	}
+
+	title, err := escape(j.Title)
+	if err != nil {
+		return "", err
+	}
+
+	detail, err := escape(j.Detail)
+	if err != nil {
+		return "", err
+	}
+
 	fields := []string{
-		fmt.Sprintf("\"id\": %s", Stringify(j.ID)),
-		fmt.Sprintf("\"status\": %s", Stringify(j.Status)),
-		fmt.Sprintf("\"code\": %s", Stringify(j.Code)),
-		fmt.Sprintf("\"title\": %s", Stringify(j.Title)),
-		fmt.Sprintf("\"detail\": %s", Stringify(j.Detail)),
+		fmt.Sprintf("\"id\": %s", id),
+		fmt.Sprintf("\"status\": %s", status),
+		fmt.Sprintf("\"code\": %s", code),
+		fmt.Sprintf("\"title\": %s", title),
+		fmt.Sprintf("\"detail\": %s", detail),
 	}
 
 	return fmt.Sprintf("{\n%s\n}", strings.Join(fields, ", \n")), nil
+}
+
+func escape(i any) (string, error) {
+	b, err := json.Marshal(i)
+	if err != nil {
+		return "", goooerrors.Wrap(err)
+	}
+
+	return string(b), nil
 }
 
 type Errable interface {

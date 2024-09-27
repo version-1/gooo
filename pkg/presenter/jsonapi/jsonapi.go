@@ -104,7 +104,7 @@ func (j Root[T]) Serialize() (string, error) {
 	var out bytes.Buffer
 	if err := json.Indent(&out, []byte(s), "", "\t"); err != nil {
 		logger.DefaultLogger.Errorf("pkg/presenter/jsonapi: got error on pretty printinting json")
-		logger.DefaultLogger.Errorf("s: %s\n", s)
+		logger.DefaultLogger.Errorf("%s\n", s)
 		return "", goooerrors.Wrap(err)
 	}
 
