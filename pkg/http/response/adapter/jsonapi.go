@@ -43,7 +43,10 @@ func (a *JSONAPI) RenderError(e error, options ...any) ([]byte, error) {
 func resolve(payload any, options ...any) ([]byte, error) {
 	var meta jsonapi.Serializer
 	for _, opt := range options {
-		if t, ok := opt.(*JSONAPIOption); ok {
+		switch t := opt.(type) {
+		case JSONAPIOption:
+			meta = t.Meta
+		case *JSONAPIOption:
 			meta = t.Meta
 		}
 	}

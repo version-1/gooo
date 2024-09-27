@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/version-1/gooo/pkg/context"
 	"github.com/version-1/gooo/pkg/logger"
@@ -43,8 +44,24 @@ func (r Request) ParamInt(key string) (int, bool) {
 	return r.Handler.ParamInt(r.Request.URL.Path, key)
 }
 
-func (r Request) Query(key string) string {
-	return r.Request.URL.Query().Get(key)
+func (r Request) Query(key string) (string, bool) {
+	v := r.Request.URL.Query().Get(key)
+	return v, v != ""
+}
+
+func (r Request) QueryInt(key string) (int, bool) {
+	v := r.Request.URL.Query().Get(key)
+	if v == "" {
+		return 0, false
+	}
+
+	i, err := strconv.Atoi(v)
+	if err != nil {
+		r.Logger().Errorf("failed to convert query param %s to int: %s", key, err)
+		return 0, false
+	}
+
+	return i, true
 }
 
 func (r *Request) WithContext(ctx gocontext.Context) *Request {
