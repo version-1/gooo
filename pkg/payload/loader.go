@@ -2,13 +2,33 @@ package payload
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 )
 
+type EnvVarsLoader[T string] struct {
+	keys []T
+}
+
+func NewEnvVarsLoader[T string](keys []T) *EnvVarsLoader[T] {
+	return &EnvVarsLoader[T]{
+		keys: keys,
+	}
+}
+
+func (l *EnvVarsLoader[T]) Load() (*map[string]any, error) {
+	m := &map[string]any{}
+	for _, k := range l.keys {
+		s := fmt.Sprintf("%s", k)
+		(*m)[s] = os.Getenv(s)
+	}
+
+	return m, nil
+}
+
 type EnvfileLoader[T comparable] struct {
-	path    string
-	keyMaps map[string]T
+	path string
 }
 
 func NewEnvfileLoader[T comparable](path string) *EnvfileLoader[T] {
