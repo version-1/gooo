@@ -3,7 +3,6 @@ package payload
 import "fmt"
 
 var _ Loader = &EnvfileLoader[any]{}
-var _ Loader = &EnvVarsLoader[string]{}
 
 type Loader interface {
 	Load() (*map[string]any, error)

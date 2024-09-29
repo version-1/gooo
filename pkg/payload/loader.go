@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-type EnvVarsLoader[T string] struct {
+type EnvVarsLoader[T fmt.Stringer] struct {
 	keys []T
 }
 
-func NewEnvVarsLoader[T string](keys []T) *EnvVarsLoader[T] {
+func NewEnvVarsLoader[T fmt.Stringer](keys []T) *EnvVarsLoader[T] {
 	return &EnvVarsLoader[T]{
 		keys: keys,
 	}
@@ -20,7 +20,7 @@ func NewEnvVarsLoader[T string](keys []T) *EnvVarsLoader[T] {
 func (l *EnvVarsLoader[T]) Load() (*map[string]any, error) {
 	m := &map[string]any{}
 	for _, k := range l.keys {
-		s := fmt.Sprintf("%s", k)
+		s := k.String()
 		(*m)[s] = os.Getenv(s)
 	}
 
@@ -58,8 +58,9 @@ func (l *EnvfileLoader[T]) Load() (*map[string]any, error) {
 
 		if strings.Contains(line, "=") {
 			parts := strings.Split(line, "=")
-			if len(parts) == 2 {
-				v := strings.TrimSpace(strings.TrimSuffix(parts[1], "\n"))
+			if len(parts) >= 2 {
+				str := strings.Join(parts[1:], "=")
+				v := strings.TrimSpace(strings.TrimSuffix(str, "\n"))
 				os.Setenv(parts[0], v)
 				(*m)[parts[0]] = v
 			}
