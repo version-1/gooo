@@ -10,19 +10,21 @@ import (
 	"github.com/version-1/gooo/pkg/command/migration/runner"
 )
 
+type connector struct{}
+
+func (c connector) Connect() (*sqlx.DB, error) {
+	return sqlx.Connect("postgres", os.Getenv("DATABASE_URL"))
+}
+
 func main() {
-	db, err := sqlx.Connect("postgres", os.Getenv("DATABASE_URL"))
-	if err != nil {
-		panic(err)
-	}
-
+	conn := connector{}
 	ctx := context.Background()
-	m, err := runner.NewYaml(db, os.Getenv("MIGRATION_PATH"))
+	m, err := runner.NewYaml(os.Getenv("MIGRATION_PATH"))
 	if err != nil {
 		panic(err)
 	}
 
-	c, err := migration.NewWith(db, m, nil)
+	c, err := migration.NewWith(conn, m, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +42,7 @@ func main() {
 		args = os.Args[2:]
 	}
 
-	if err := c.Exec(ctx, cmd, args...); err != nil {
+	if err = c.Exec(ctx, cmd, args...); err != nil {
 		panic(err)
 	}
 }

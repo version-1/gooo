@@ -38,6 +38,10 @@ func (r *Base) SetElements(elements Elements) {
 	r.elements = elements
 }
 
+func (r Base) Elements() Elements {
+	return r.elements
+}
+
 type Migration interface {
 	Up(ctx context.Context, tx db.Tx) error
 	Down(ctx context.Context, tx db.Tx) error

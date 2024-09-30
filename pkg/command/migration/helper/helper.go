@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	goooerrors "github.com/version-1/gooo/pkg/errors"
+
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 )
 
@@ -14,7 +16,7 @@ func ParseKind(path string) (constants.MigrationKind, error) {
 	if len(parts) < 3 {
 		v, err := ParseVersion(path)
 		if err != nil {
-			return "", err
+			return "", goooerrors.Wrap(err)
 		}
 
 		if v == strings.Repeat("0", 14) {
@@ -46,7 +48,7 @@ func ParseVersion(path string) (string, error) {
 	base := filepath.Base(path)
 	parts := strings.Split(base, "_")
 	if len(parts) < 2 && parts[0] != strings.Repeat("0", 14) {
-		return "", InvalidVersionError{path}
+		return "", goooerrors.Wrap(InvalidVersionError{path})
 	}
 
 	return parts[0], nil

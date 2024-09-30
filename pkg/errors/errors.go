@@ -12,6 +12,10 @@ type Error struct {
 }
 
 func Wrap(err error) *Error {
+	if err == nil {
+		return nil
+	}
+
 	return &Error{
 		err:   err,
 		stack: captureStack(),
