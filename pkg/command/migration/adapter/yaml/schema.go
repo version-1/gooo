@@ -35,7 +35,7 @@ type Column struct {
 	Name       string  `yaml:"name"`
 	Type       string  `yaml:"type"`
 	Default    *string `yaml:"default"`
-	Null       *bool   `yaml:"null"`
+	AllowNull  *bool   `yaml:"allow_null"`
 	PrimaryKey *bool   `yaml:"primary_key"`
 }
 
@@ -45,7 +45,7 @@ func (c Column) Definition() string {
 		s += fmt.Sprintf(" DEFAULT %s", *c.Default)
 	}
 
-	if c.Null != nil && (*c.Null) == true {
+	if c.AllowNull != nil && (*c.AllowNull) == true {
 		// do nothing
 	} else {
 		s += " NOT NULL"
