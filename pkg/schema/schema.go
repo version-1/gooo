@@ -50,7 +50,6 @@ func (s *Schema) MutableColumns() []string {
 			fields = append(fields, gooostrings.ToSnakeCase(s.Fields[i].Name))
 		}
 	}
-
 	return fields
 }
 
@@ -110,7 +109,7 @@ func (s *Schema) ImmutablePlaceholders() []string {
 func (s *Schema) IgnoredFields() []Field {
 	fields := []Field{}
 	for i := range s.Fields {
-		if s.Fields[i].Options.Ignore {
+		if s.Fields[i].Tag.Ignore {
 			fields = append(fields, s.Fields[i])
 		}
 	}
@@ -121,7 +120,7 @@ func (s *Schema) IgnoredFields() []Field {
 func (s *Schema) ColumnFields() []Field {
 	fields := []Field{}
 	for i := range s.Fields {
-		if !s.Fields[i].Options.Ignore {
+		if !s.Fields[i].Tag.Ignore {
 			fields = append(fields, s.Fields[i])
 		}
 	}
@@ -182,7 +181,7 @@ func (s *Schema) AssociationFields() []Field {
 
 func (s *Schema) PrimaryKey() string {
 	for i := range s.Fields {
-		if s.Fields[i].Options.PrimaryKey {
+		if s.Fields[i].Tag.PrimaryKey {
 			return s.Fields[i].Name
 		}
 	}
@@ -191,20 +190,17 @@ func (s *Schema) PrimaryKey() string {
 }
 
 type Field struct {
-	Name    string
-	Type    FieldType
-	Tag     string
-	Options FieldOptions
+	Name            string
+	Type            FieldType
+	TypeElementExpr string
+	Tag             FieldTag
+	Association     *Association
 }
 
 func (f Field) String() string {
 	str := ""
 	field := fmt.Sprintf("\t%s %s", f.Name, f.Type)
-	if f.Tag != "" {
-		str = fmt.Sprintf("%s `%s`\n", field, f.Tag)
-	} else {
-		str = fmt.Sprintf("%s\n", field)
-	}
+	str = fmt.Sprintf("%s\n", field)
 
 	return str
 }
@@ -214,15 +210,20 @@ func (f Field) ColumnName() string {
 }
 
 func (f Field) IsMutable() bool {
-	return !f.Options.Immutable && !f.Options.Ignore
+	return !f.Tag.Immutable && !f.Tag.Ignore
 }
 
 func (f Field) IsImmutable() bool {
-	return f.Options.Immutable && !f.Options.Ignore
+	return f.Tag.Immutable && !f.Tag.Ignore
 }
 
 func (f Field) IsAssociation() bool {
-	return f.Options.Association != nil
+	return f.Tag.Association
+}
+
+func (f Field) IsSlice() bool {
+	_, ok := f.Type.(slice)
+	return ok
 }
 
 type Validator struct {
@@ -233,12 +234,4 @@ type Validator struct {
 type Association struct {
 	Slice  bool
 	Schema Schema
-}
-
-type FieldOptions struct {
-	Immutable   bool
-	PrimaryKey  bool
-	Ignore      bool // ignore fields for insert and update like fields of association.
-	Association *Association
-	Validators  []Validator
 }

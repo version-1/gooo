@@ -28,7 +28,7 @@ func (s SchemaTemplate) defineToJSONAPIResource() string {
 			t = v.Element()
 		}
 		typeName := gooostrings.ToSnakeCase(t.String())
-		association := field.Options.Association
+		association := field.Association
 		primaryKey := association.Schema.PrimaryKey()
 		if ok {
 			str += fmt.Sprintf(`

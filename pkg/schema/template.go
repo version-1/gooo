@@ -131,31 +131,7 @@ func (s SchemaTemplate) Render() (string, error) {
 }
 
 func (s SchemaTemplate) defineValidate() string {
-	fields := s.Schema.Fields
 	str := ""
-	index := 0
-	for i, f := range fields {
-		for j, validator := range f.Options.Validators {
-			values := []string{
-				"obj." + f.Name,
-			}
-			for _, v := range validator.Fields {
-				values = append(values, fmt.Sprintf("obj.%s", v))
-			}
-
-			if index == 0 {
-				str += fmt.Sprintf(`validator := obj.Schema.Fields[%d].Options.Validators[%d]`+"\n", i, j)
-			} else {
-				str += fmt.Sprintf(`validator = obj.Schema.Fields[%d].Options.Validators[%d]`+"\n", i, j)
-			}
-			str += fmt.Sprintf(`if err := validator.Validate("%s")(%s); err != nil {
-					return err
-				}
-				`+"\n\n", f.Name, strings.Join(values, ", "))
-			index++
-		}
-	}
-
 	str += "return nil"
 
 	return template.Method{
