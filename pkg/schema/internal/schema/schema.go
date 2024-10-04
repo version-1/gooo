@@ -24,7 +24,8 @@ type Post struct {
 	CreatedAt time.Time `json:"created_at" gooo:"immutable"`
 	UpdatedAt time.Time `json:"updated_at" gooo:"immutable"`
 
-	Likeable Likeable `json:"likeable" gooo:"association"`
+	User  User   `json:"user" gooo:"association"`
+	Likes []Like `json:"likes" gooo:"association"`
 }
 
 type Profile struct {
@@ -33,8 +34,6 @@ type Profile struct {
 	Bio       string    `json:"bio" gooo:"type=text"`
 	CreatedAt time.Time `json:"created_at" gooo:"immutable"`
 	UpdatedAt time.Time `json:"updated_at" gooo:"immutable"`
-
-	Likes []Like `json:"likes" gooo:"association"`
 }
 
 type Like struct {
@@ -43,11 +42,4 @@ type Like struct {
 	LikeableType string    `json:"likeable_type" gooo:"index"`
 	CreatedAt    time.Time `json:"created_at" gooo:"immutable"`
 	UpdatedAt    time.Time `json:"updated_at" gooo:"immutable"`
-
-	Likeable Likeable `json:"likeable" gooo:"association"`
-}
-
-type Likeable interface {
-	Profile() *Profile
-	Post() *Post
 }

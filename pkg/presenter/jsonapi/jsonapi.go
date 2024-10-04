@@ -343,3 +343,42 @@ type Nil struct{}
 func (n Nil) JSONAPISerialize() (string, error) {
 	return "null", nil
 }
+
+func HasOne(r *Resource, includes *Resources, ele Resourcer, id any, typeName string) {
+	if ele == nil {
+		return
+	}
+
+	r.Relationships[typeName] = Relationship{
+		Data: ResourceIdentifier{
+			ID:   Stringify(id),
+			Type: typeName,
+		},
+	}
+
+	resource, childIncludes := ele.ToJSONAPIResource()
+	includes.Append(resource)
+	includes.Append(childIncludes.Data...)
+}
+
+func HasMany(r *Resource, includes *Resources, elements []Resourcer, typeName string, cb func(ri *ResourceIdentifier, index int)) {
+	relationships := RelationshipHasMany{}
+	for i, ele := range elements {
+		ri := ResourceIdentifier{
+			Type: typeName,
+		}
+		cb(&ri, i)
+		relationships.Data = append(
+			relationships.Data,
+			ri,
+		)
+
+		resource, childIncludes := ele.ToJSONAPIResource()
+		includes.Append(resource)
+		includes.Append(childIncludes.Data...)
+	}
+
+	if len(relationships.Data) > 0 {
+		r.Relationships[typeName] = relationships
+	}
+}

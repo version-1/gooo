@@ -8,6 +8,7 @@ import (
 
 	goparser "go/parser"
 
+	"github.com/version-1/gooo/pkg/errors"
 	"github.com/version-1/gooo/pkg/strings"
 )
 
@@ -23,20 +24,20 @@ func (p parser) Parse(path string) ([]Schema, error) {
 	fset := token.NewFileSet()
 	src, err := os.ReadFile(path)
 	if err != nil {
-		return list, err
+		return list, errors.Wrap(err)
 	}
 
 	node, err := goparser.ParseFile(fset, "", src, goparser.ParseComments)
 	if err != nil {
-		return list, err
+		return list, errors.Wrap(err)
 	}
 
-	m := map[string]Schema{}
+	m := map[string]*Schema{}
 	ast.Inspect(node, func(n ast.Node) bool {
 		if t, ok := n.(*ast.TypeSpec); ok {
 			name := t.Name.Name
 			if len(list) > 0 {
-				m[list[len(list)-1].Name] = list[len(list)-1]
+				m[list[len(list)-1].Name] = &list[len(list)-1]
 			}
 			list = append(list, Schema{
 				Name:      name,
@@ -58,11 +59,19 @@ func (p parser) Parse(path string) ([]Schema, error) {
 		return true
 	})
 
-	for _, s := range list {
-		for _, f := range s.Fields {
+	m[list[len(list)-1].Name] = &list[len(list)-1]
+
+	for i := range list {
+		for j := range list[i].Fields {
+			f := list[i].Fields[j]
 			if f.IsAssociation() {
-				f.Association = &Association{
-					Schema: m[f.Type.String()],
+				schema, ok := m[f.TypeElementExpr]
+				if !ok {
+					return list, errors.Errorf("schema %s not found on association", f.TypeElementExpr)
+				}
+
+				list[i].Fields[j].Association = &Association{
+					Schema: schema,
 					Slice:  f.IsSlice(),
 				}
 			}
@@ -88,7 +97,7 @@ func resolveTypeName(f ast.Expr) (FieldType, string) {
 		typeName = Ref(tn)
 	case *ast.ArrayType:
 		tn, te := resolveTypeName(t.Elt)
-		typeElementExpr = fmt.Sprintf("[]%s", tn)
+		typeElementExpr = fmt.Sprintf("%s", tn)
 		typeName = Slice(convertType(te))
 	case *ast.MapType:
 		typeName = Map(

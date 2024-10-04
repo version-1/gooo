@@ -117,10 +117,23 @@ func (s *Schema) IgnoredFields() []Field {
 	return fields
 }
 
+func (s *Schema) AtttributeFields() []Field {
+	fields := []Field{}
+	for i := range s.Fields {
+		f := s.Fields[i]
+		if !f.Tag.Ignore && !s.Fields[i].IsAssociation() && !f.Tag.PrimaryKey {
+			fields = append(fields, s.Fields[i])
+		}
+	}
+
+	return fields
+}
+
 func (s *Schema) ColumnFields() []Field {
 	fields := []Field{}
 	for i := range s.Fields {
-		if !s.Fields[i].Tag.Ignore {
+		f := s.Fields[i]
+		if !f.Tag.Ignore && !s.Fields[i].IsAssociation() {
 			fields = append(fields, s.Fields[i])
 		}
 	}
@@ -226,6 +239,25 @@ func (f Field) IsSlice() bool {
 	return ok
 }
 
+func (f Field) IsMap() bool {
+	_, ok := f.Type.(maptype)
+	return ok
+}
+
+func (f Field) IsRef() bool {
+	_, ok := f.Type.(ref)
+	return ok
+}
+
+func (f Field) AssociationPrimaryKey() string {
+	fmt.Printf("Association: %#v\n", f)
+	if f.Association == nil {
+		return ""
+	}
+
+	return f.Association.Schema.PrimaryKey()
+}
+
 type Validator struct {
 	Fields   []string
 	Validate validator.Validator
@@ -233,5 +265,5 @@ type Validator struct {
 
 type Association struct {
 	Slice  bool
-	Schema Schema
+	Schema *Schema
 }

@@ -5,7 +5,9 @@ import (
 	"go/format"
 	"strings"
 
+	"github.com/version-1/gooo/pkg/errors"
 	"github.com/version-1/gooo/pkg/schema/internal/template"
+	"github.com/version-1/gooo/pkg/util"
 	"golang.org/x/tools/imports"
 )
 
@@ -17,7 +19,7 @@ type SchemaTemplate struct {
 }
 
 func (s SchemaTemplate) Filename() string {
-	return strings.ToLower(s.filename)
+	return fmt.Sprintf("generated--%s", util.Basename(strings.ToLower(s.filename)))
 }
 
 func (s SchemaTemplate) Render() (string, error) {
@@ -29,9 +31,6 @@ func (s SchemaTemplate) Render() (string, error) {
 		str += fmt.Sprintf("import (\n%s\n)\n", strings.Join(s.libs(), "\n"))
 	}
 	str += "\n"
-
-	// define model
-	str += s.defineModel()
 
 	// columns
 	str += template.Method{
@@ -76,13 +75,18 @@ func (s SchemaTemplate) Render() (string, error) {
 				{Name: "qr", Type: "queryer"},
 			},
 			ReturnTypes: []string{"error"},
-			Body: fmt.Sprintf(`if obj.ID == uuid.Nil {
-			  return ErrPrimaryKeyMissing
+			Body: fmt.Sprintf(`zero, err := util.IsZero(obj.ID)
+			if err != nil {
+				return goooerrors.Wrap(err)
+			}
+
+      if zero {
+			  return goooerrors.Wrap(ErrPrimaryKeyMissing)
 			}
 
 			query := "DELETE FROM %s WHERE id = $1"
 			if _, err := qr.ExecContext(ctx, query, obj.ID); err != nil {
-				return err
+				return goooerrors.Wrap(err)
 			}
 
 			return nil`, s.Schema.TableName),
@@ -95,8 +99,13 @@ func (s SchemaTemplate) Render() (string, error) {
 				{Name: "qr", Type: "queryer"},
 			},
 			ReturnTypes: []string{"error"},
-			Body: fmt.Sprintf(`if obj.ID == uuid.Nil {
-			  return ErrPrimaryKeyMissing
+			Body: fmt.Sprintf(`zero, err := util.IsZero(obj.ID)
+			if err != nil {
+				return goooerrors.Wrap(err)
+			}
+
+			if zero {
+			  return goooerrors.Wrap(ErrPrimaryKeyMissing)
 			}
 
 			query := "SELECT %s FROM %s WHERE id = $1"
@@ -104,10 +113,10 @@ func (s SchemaTemplate) Render() (string, error) {
 
 			if err := obj.Scan(row); err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
-					return ErrNotFound
+					return goooerrors.Wrap(ErrNotFound)
 				}
 
-				return err
+				return goooerrors.Wrap(err)
 			}
 
 			return nil`,
@@ -138,7 +147,7 @@ func (s SchemaTemplate) defineValidate() string {
 		Receiver:    s.Schema.Name,
 		Name:        "validate",
 		Args:        []template.Arg{},
-		ReturnTypes: []string{"goooerrors.ValidationError"},
+		ReturnTypes: []string{"ormerrors.ValidationError"},
 		Body:        str,
 	}.String()
 }
@@ -205,36 +214,18 @@ func (s SchemaTemplate) defineAssign() string {
 	}.String()
 }
 
-func (s SchemaTemplate) defineModel() string {
-	str := fmt.Sprintf("type %s struct {\n", s.Schema.Name)
-	str += "schema.Schema\n"
-	str += "// db related fields\n"
-	for _, f := range s.Schema.ColumnFields() {
-		str += f.String()
-	}
-
-	str += "\n"
-	str += "// non-db related fields\n"
-	for _, f := range s.Schema.IgnoredFields() {
-		str += f.String()
-	}
-	str += "}\n"
-	str += "\n"
-
-	return str
-}
-
 func (s SchemaTemplate) libs() []string {
 	list := []string{
 		schemaPackage,
 		errorsPackage,
+		ormerrPackage,
 		stringsPackage,
 		jsonapiPackage,
+		utilPackage,
 		"\"github.com/google/uuid\"",
 		"\"strings\"",
 		"\"time\"",
 		"\"fmt\"",
-		// fmt.Sprintf("schema \"%s/schema\"", s.URL),
 	}
 
 	return list
@@ -252,13 +243,13 @@ func pretify(filename, s string) (string, error) {
 	// return s, nil
 	formatted, err := format.Source([]byte(s))
 	if err != nil {
-		return s, err
+		return s, errors.Wrap(err)
 	}
 
 	processed, err := imports.Process(filename, formatted, nil)
 	if err != nil {
-		return string(formatted), err
+		return string(formatted), errors.Wrap(err)
 	}
 
-	return string(processed), err
+	return string(processed), nil
 }

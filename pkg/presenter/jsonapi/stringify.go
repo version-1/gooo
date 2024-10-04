@@ -12,8 +12,16 @@ func Stringify(v any) string {
 		panic(err)
 	}
 
+	if len(s) < 2 {
+		return s
+	}
+
 	// Remove the quotes
-	return s[1 : len(s)-1]
+	if s[0] == '"' && s[len(s)-1] == '"' {
+		return s[1 : len(s)-1]
+	} else {
+		return s
+	}
 }
 
 func Escape(i any) (string, error) {

@@ -1,4 +1,4 @@
-package models
+package fixtures
 
 import (
 	"bytes"
@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/version-1/gooo/pkg/presenter/jsonapi"
 )
 
@@ -44,28 +43,21 @@ func TestResourcesSerialize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	uid := []uuid.UUID{
-		uuid.MustParse("4018be75-e855-489d-a151-ddb8fc3fd2dc"),
-		uuid.MustParse("ccf7a495-ec22-4358-bccd-d77bec8ee037"),
-		uuid.MustParse("f7b1b3b4-3b3b-4b3b-8b3b-3b3b3b3b3b3b"),
+	uid := []int{
+		1,
+		2,
+		3,
 	}
 
-	postID := []uuid.UUID{
-		uuid.MustParse("15fa357d-089d-4816-9924-65a8e2a91eba"),
-		uuid.MustParse("e1222719-b9b6-4191-99c6-9b159884f534"),
-		uuid.MustParse("17b89f20-d638-4b6a-b732-1b8f08a914d1"),
+	postID := []int{
+		4,
+		5,
+		6,
 	}
 
 	users := []User{}
 	for i, id := range uid {
 		u := NewUser()
-		uu := User{
-			ID:        id,
-			Username:  "test" + strconv.Itoa(i),
-			Email:     fmt.Sprintf("test%d@example.com", i),
-			CreatedAt: now,
-			UpdatedAt: now,
-		}
 		u.Assign(User{
 			ID:        id,
 			Username:  "test" + strconv.Itoa(i),
@@ -76,10 +68,8 @@ func TestResourcesSerialize(t *testing.T) {
 				{
 					ID:        postID[i],
 					UserID:    id,
-					User:      uu,
 					Title:     "title" + strconv.Itoa(i),
 					Body:      "body" + strconv.Itoa(i),
-					Status:    "published",
 					CreatedAt: now,
 					UpdatedAt: now,
 				},
@@ -117,7 +107,7 @@ func TestResourcesSerialize(t *testing.T) {
 	}
 
 	if err := diff(buf.String(), s); err != nil {
-		fmt.Printf("expect %s\n\n got %s", buf.String(), s)
+		fmt.Printf("expect %s\n\n got %s \n\n\n", buf.String(), s)
 		t.Fatal(err)
 	}
 }
@@ -128,42 +118,54 @@ func TestResourceSerialize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	uid := uuid.MustParse("4018be75-e855-489d-a151-ddb8fc3fd2dc")
-	p1 := uuid.MustParse("ccf7a495-ec22-4358-bccd-d77bec8ee037")
-	p2 := uuid.MustParse("f7b1b3b4-3b3b-4b3b-8b3b-3b3b3b3b3b3b")
-	uu := NewUserWith(User{
-		ID:        uid,
-		Username:  "test",
-		Email:     "test@example.com",
-		CreatedAt: now,
-		UpdatedAt: now,
-	})
+	uid := 1
+	p1 := 10
+	p2 := 11
 	u := NewUserWith(User{
-		ID:        uid,
-		Username:  "test",
-		Email:     "test@example.com",
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:           uid,
+		Username:     "test",
+		Email:        "test@example.com",
+		RefreshToken: "refresh_token",
+		Timezone:     "Asia/Tokyo",
+		TimeDiff:     9,
+		CreatedAt:    now,
+		UpdatedAt:    now,
 		Posts: []Post{
 			{
 				ID:        p1,
 				UserID:    uid,
-				User:      *uu,
 				Title:     "title1",
 				Body:      "body1",
-				Status:    "published",
 				CreatedAt: now,
 				UpdatedAt: now,
+				User: User{
+					ID:           uid,
+					Username:     "test",
+					Email:        "test@example.com",
+					RefreshToken: "refresh_token",
+					Timezone:     "Asia/Tokyo",
+					TimeDiff:     9,
+					CreatedAt:    now,
+					UpdatedAt:    now,
+				},
 			},
 			{
 				ID:        p2,
 				UserID:    uid,
-				User:      *uu,
 				Title:     "title2",
 				Body:      "body2",
-				Status:    "published",
 				CreatedAt: now,
 				UpdatedAt: now,
+				User: User{
+					ID:           uid,
+					Username:     "test",
+					Email:        "test@example.com",
+					RefreshToken: "refresh_token",
+					Timezone:     "Asia/Tokyo",
+					TimeDiff:     9,
+					CreatedAt:    now,
+					UpdatedAt:    now,
+				},
 			},
 		},
 	})
@@ -191,7 +193,7 @@ func TestResourceSerialize(t *testing.T) {
 	}
 
 	if err := diff(buf.String(), s); err != nil {
-		fmt.Printf("expect %s\n\n got %s", buf.String(), s)
+		fmt.Printf("expect %s\n\n got %s\n\n", buf.String(), s)
 		t.Fatal(err)
 	}
 }

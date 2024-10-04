@@ -12,14 +12,14 @@ func (s SchemaTemplate) defineToJSONAPIResource() string {
 	primaryKey := s.Schema.PrimaryKey()
 
 	str := fmt.Sprintf(`includes := &jsonapi.Resources{ShouldSort: true}
-		r := jsonapi.Resource{
+		r := &jsonapi.Resource{
 		  ID:   jsonapi.Stringify(obj.%s),
 			Type: "%s",
 			Attributes: obj,
 			Relationships: jsonapi.Relationships{},
 		}
-
 	`, primaryKey, gooostrings.ToSnakeCase(s.Schema.Name))
+	str += "\n"
 
 	for _, field := range s.Schema.AssociationFields() {
 		t := fmt.Stringer(field.Type)
@@ -28,52 +28,55 @@ func (s SchemaTemplate) defineToJSONAPIResource() string {
 			t = v.Element()
 		}
 		typeName := gooostrings.ToSnakeCase(t.String())
-		association := field.Association
-		primaryKey := association.Schema.PrimaryKey()
+		primaryKey := field.AssociationPrimaryKey()
 		if ok {
-			str += fmt.Sprintf(`
-			relationships := jsonapi.RelationshipHasMany{}
-			for _, ele := range obj.%s {
-				relationships.Data = append(
-					relationships.Data,
-					jsonapi.ResourceIdentifier{
-						ID:   jsonapi.Stringify(ele.%s),
-						Type: "%s",
-					},
-				)
-
-				resource, childIncludes := ele.ToJSONAPIResource()
-				includes.Append(resource)
-				includes.Append(childIncludes.Data...)
-			}
-
-			if len(relationships.Data) > 0 {
-				r.Relationships["%s"] = relationships
-			}
-		`, field.Name, primaryKey, typeName, gooostrings.ToSnakeCase(field.Name))
+			str += fmt.Sprintf(
+				`elements := []jsonapi.Resourcer{}
+				for _, ele := range obj.%s {
+					elements = append(elements, jsonapi.Resourcer(ele))
+				}
+				jsonapi.HasMany(r, includes, elements, "%s", func(ri *jsonapi.ResourceIdentifier, i int) {
+						id := obj.%s[i].%s
+						ri.ID = jsonapi.Stringify(id)
+				})`,
+				field.Name,
+				typeName,
+				field.Name,
+				primaryKey,
+			)
+			str += "\n"
 		} else {
-			str += fmt.Sprintf(`
-			ele := obj.%s
-			if ele.%s == (%s{}).%s {
-				return r, *includes
+			if field.IsRef() {
+				str += fmt.Sprintf(
+					`ele := obj.%s
+					if ele != nil {
+						jsonapi.HasOne(r, includes, ele, ele.%s, "%s")
+					}`,
+					field.Name,
+					primaryKey,
+					typeName,
+				)
+			} else {
+				str += fmt.Sprintf(
+					`ele := obj.%s
+					if ele.%s != (%s{}).%s {
+						jsonapi.HasOne(r, includes, ele, ele.%s, "%s")
+					}`,
+					field.Name,
+					primaryKey,
+					field.TypeElementExpr,
+					primaryKey,
+					primaryKey,
+					typeName,
+				)
 			}
-			relationship := jsonapi.Relationship{
-				Data: jsonapi.ResourceIdentifier{
-					ID:   jsonapi.Stringify(ele.%s),
-					Type: "%s",
-				},
-			}
-
-			resource, childIncludes := ele.ToJSONAPIResource()
-			includes.Append(resource)
-			includes.Append(childIncludes.Data...)
-
-			r.Relationships["%s"] = relationship
-		`, field.Name, primaryKey, t.String(), primaryKey, primaryKey, typeName, typeName)
+			str += "\n"
 		}
+		str += "\n"
 	}
 
-	str += "return r, *includes"
+	str += "\n"
+	str += "return *r, *includes"
 
 	return template.Method{
 		Receiver:    s.Schema.Name,
@@ -86,7 +89,7 @@ func (s SchemaTemplate) defineToJSONAPIResource() string {
 
 func (s SchemaTemplate) defineJSONAPISerialize() string {
 	fields := []string{}
-	for _, field := range s.Schema.ColumnFields() {
+	for _, field := range s.Schema.AtttributeFields() {
 		v := fmt.Sprintf(
 			`fmt.Sprintf("\"%s\": %s", jsonapi.MustEscape(obj.%s))`,
 			gooostrings.ToSnakeCase(field.Name),

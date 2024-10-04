@@ -2,14 +2,18 @@ package schema
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/version-1/gooo/pkg/generator"
 	"github.com/version-1/gooo/pkg/schema/internal/template"
+	"github.com/version-1/gooo/pkg/util"
 )
 
-var errorsPackage = fmt.Sprintf("goooerrors \"%s\"", "github.com/version-1/gooo/pkg/datasource/orm/errors")
+var ormerrPackage = fmt.Sprintf("ormerrors \"%s\"", "github.com/version-1/gooo/pkg/datasource/orm/errors")
+var errorsPackage = fmt.Sprintf("goooerrors \"%s\"", "github.com/version-1/gooo/pkg/errors")
 var schemaPackage = "\"github.com/version-1/gooo/pkg/schema\""
+var utilPackage = "\"github.com/version-1/gooo/pkg/util\""
 var stringsPackage = "gooostrings \"github.com/version-1/gooo/pkg/strings\""
 var jsonapiPackage = "\"github.com/version-1/gooo/pkg/presenter/jsonapi\""
 
@@ -29,7 +33,29 @@ func (s SchemaCollection) PackageURL() string {
 	return url
 }
 
+func (s *SchemaCollection) collect() error {
+	p := NewParser()
+	rootPath, err := util.LookupGomodDirPath()
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Clean(fmt.Sprintf("%s/%s/schema.go", rootPath, s.Dir))
+	list, err := p.Parse(path)
+	if err != nil {
+		return err
+	}
+
+	s.Schemas = list
+
+	return nil
+}
+
 func (s SchemaCollection) Gen() error {
+	if err := s.collect(); err != nil {
+		return err
+	}
+
 	g := generator.Generator{
 		Dir:      s.Dir,
 		Template: s,
@@ -61,7 +87,7 @@ func (s SchemaCollection) Gen() error {
 }
 
 func (s SchemaCollection) Filename() string {
-	return "shared"
+	return "generated--shared"
 }
 
 func (s SchemaCollection) Render() (string, error) {
@@ -122,22 +148,18 @@ func (s SchemaCollection) Render() (string, error) {
 
 	for _, schema := range s.Schemas {
 		str += fmt.Sprintf(`func New%s() *%s {
-				return &%s{
-					Schema: schema.%sSchema,
-				}
+				return &%s{}
     }
-  `, schema.Name, schema.Name, schema.Name, schema.Name)
+  `, schema.Name, schema.Name, schema.Name)
 		str += "\n"
 
 		str += fmt.Sprintf(`func New%sWith(obj %s) *%s {
-				m := &%s{
-					Schema: schema.%sSchema,
-				}
+				m := &%s{}
 				m.Assign(obj)
 
 				return m
     }
-  `, schema.Name, schema.Name, schema.Name, schema.Name, schema.Name)
+  `, schema.Name, schema.Name, schema.Name, schema.Name)
 		str += "\n"
 	}
 
