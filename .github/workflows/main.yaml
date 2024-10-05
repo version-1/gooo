@@ -74,8 +74,6 @@ jobs:
         run: go run test/cmd/initdb/main.go
       # - name: Run API
       #   run: go run examples/starter/cmd/api/main.go
-      - name: Run Scheme
-        run: go run examples/starter/cmd/schema/main.go examples/starter/models
       - name: Run Seed
         run: go run examples/starter/cmd/seed/main.go
       - name: Run Migration Up

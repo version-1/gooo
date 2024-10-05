@@ -1,0 +1,72 @@
+{
+  "data": {
+    "id": "1",
+    "type": "user",
+    "attributes": {
+      "username": "test",
+      "email": "test@example.com",
+      "refresh_token": "refresh_token",
+      "timezone": "Asia/Tokyo",
+      "time_diff": 9,
+      "created_at": "2024-08-07T01:58:13Z",
+      "updated_at": "2024-08-07T01:58:13Z"
+    },
+    "relationships": {
+      "post": {
+        "data": [
+          {
+            "id": "10",
+            "type": "post"
+          },
+          {
+            "id": "11",
+            "type": "post"
+          }
+        ]
+      }
+    }
+  },
+  "included": [
+    {
+      "id": "10",
+      "type": "post",
+      "attributes": {
+        "user_id": 1,
+        "title": "title1",
+        "body": "body1",
+        "created_at": "2024-08-07T01:58:13Z",
+        "updated_at": "2024-08-07T01:58:13Z"
+      },
+      "relationships":{
+        "user":{"data":{"id":"1","type":"user"}}
+      }
+    },
+    {
+      "id": "11",
+      "type": "post",
+      "attributes": {
+        "user_id": 1,
+        "title": "title2",
+        "body": "body2",
+        "created_at": "2024-08-07T01:58:13Z",
+        "updated_at": "2024-08-07T01:58:13Z"
+      },
+      "relationships":{
+        "user":{"data":{"id":"1","type":"user"}}
+      }
+    },
+    {
+      "id":"1",
+      "type":"user",
+      "attributes": {
+        "username":"test",
+        "email":"test@example.com",
+        "refresh_token":"refresh_token",
+        "timezone":"Asia/Tokyo",
+        "time_diff":9,
+        "created_at":"2024-08-07T01:58:13Z",
+        "updated_at":"2024-08-07T01:58:13Z"
+      }
+    }
+  ]
+}

@@ -3,7 +3,8 @@ package schema
 import (
 	"fmt"
 
-	"github.com/version-1/gooo/pkg/datasource/orm/validator"
+	"github.com/version-1/gooo/pkg/schema/internal/renderer"
+	"github.com/version-1/gooo/pkg/schema/internal/valuetype"
 	gooostrings "github.com/version-1/gooo/pkg/strings"
 )
 
@@ -35,6 +36,14 @@ func (s SchemaType) String() string {
 	return s.typeName
 }
 
+func (s Schema) GetName() string {
+	return s.Name
+}
+
+func (s Schema) GetTableName() string {
+	return s.TableName
+}
+
 func (s *Schema) Type() SchemaType {
 	return SchemaType{s.Name}
 }
@@ -43,18 +52,27 @@ func (s *Schema) AddFields(fields ...Field) {
 	s.Fields = append(s.Fields, fields...)
 }
 
-func (s *Schema) MutableColumns() []string {
+func (s Schema) MutableColumns() []string {
 	fields := []string{}
 	for i := range s.Fields {
 		if s.Fields[i].IsMutable() {
 			fields = append(fields, gooostrings.ToSnakeCase(s.Fields[i].Name))
 		}
 	}
-
 	return fields
 }
 
-func (s *Schema) ImmutableColumns() []string {
+func (s Schema) MutableFieldNames() []string {
+	fields := []string{}
+	for i := range s.Fields {
+		if s.Fields[i].IsMutable() {
+			fields = append(fields, s.Fields[i].Name)
+		}
+	}
+	return fields
+}
+
+func (s Schema) ImmutableColumns() []string {
 	fields := []string{}
 	for i := range s.Fields {
 		if s.Fields[i].IsImmutable() {
@@ -65,7 +83,7 @@ func (s *Schema) ImmutableColumns() []string {
 	return fields
 }
 
-func (s *Schema) SetClause() []string {
+func (s Schema) SetClause() []string {
 	placeholders := []string{}
 	for i, c := range s.MutableColumns() {
 		placeholders = append(placeholders, fmt.Sprintf("%s = $%d", gooostrings.ToSnakeCase(c), i+1))
@@ -110,7 +128,7 @@ func (s *Schema) ImmutablePlaceholders() []string {
 func (s *Schema) IgnoredFields() []Field {
 	fields := []Field{}
 	for i := range s.Fields {
-		if s.Fields[i].Options.Ignore {
+		if s.Fields[i].Tag.Ignore {
 			fields = append(fields, s.Fields[i])
 		}
 	}
@@ -118,10 +136,11 @@ func (s *Schema) IgnoredFields() []Field {
 	return fields
 }
 
-func (s *Schema) ColumnFields() []Field {
+func (s Schema) AtttributeFields() []Field {
 	fields := []Field{}
 	for i := range s.Fields {
-		if !s.Fields[i].Options.Ignore {
+		f := s.Fields[i]
+		if !f.Tag.Ignore && !s.Fields[i].IsAssociation() && !f.Tag.PrimaryKey {
 			fields = append(fields, s.Fields[i])
 		}
 	}
@@ -129,19 +148,55 @@ func (s *Schema) ColumnFields() []Field {
 	return fields
 }
 
-func (s *Schema) Columns() []string {
+func (s Schema) AttributeFieldNames() []string {
 	fields := []string{}
-	for _, f := range s.ColumnFields() {
-		fields = append(fields, f.ColumnName())
+	for i := range s.Fields {
+		f := s.Fields[i]
+		if !f.Tag.Ignore && !s.Fields[i].IsAssociation() && !f.Tag.PrimaryKey {
+			fields = append(fields, s.Fields[i].Name)
+		}
 	}
 
 	return fields
 }
 
-func (s *Schema) FieldNames() []string {
+func (s Schema) FieldNames() []string {
 	fields := []string{}
 	for i := range s.Fields {
 		fields = append(fields, s.Fields[i].Name)
+	}
+
+	return fields
+}
+
+func (s Schema) ColumnFields() []Field {
+	fields := []Field{}
+	for i := range s.Fields {
+		f := s.Fields[i]
+		if !f.Tag.Ignore && !s.Fields[i].IsAssociation() {
+			fields = append(fields, s.Fields[i])
+		}
+	}
+
+	return fields
+}
+
+func (s Schema) ColumnFieldNames() []string {
+	fields := []string{}
+	for i := range s.Fields {
+		f := s.Fields[i]
+		if !f.Tag.Ignore && !s.Fields[i].IsAssociation() {
+			fields = append(fields, s.Fields[i].Name)
+		}
+	}
+
+	return fields
+}
+
+func (s Schema) Columns() []string {
+	fields := []string{}
+	for _, f := range s.ColumnFields() {
+		fields = append(fields, f.ColumnName())
 	}
 
 	return fields
@@ -169,7 +224,7 @@ func (s *Schema) MutableFieldKeys() []string {
 	return fields
 }
 
-func (s *Schema) AssociationFields() []Field {
+func (s Schema) AssociationFields() []Field {
 	fields := []Field{}
 	for i := range s.Fields {
 		if s.Fields[i].IsAssociation() {
@@ -180,65 +235,39 @@ func (s *Schema) AssociationFields() []Field {
 	return fields
 }
 
-func (s *Schema) PrimaryKey() string {
+func (s Schema) AssociationFieldIdents() []renderer.AssociationIdent {
+	idents := []renderer.AssociationIdent{}
 	for i := range s.Fields {
-		if s.Fields[i].Options.PrimaryKey {
+		if s.Fields[i].IsAssociation() {
+			field := s.Fields[i]
+			t := fmt.Stringer(field.Type)
+			ok := valuetype.MaySlice(t)
+			if v, ok := t.(valuetype.Elementer); ok {
+				t = v.Element()
+			}
+
+			typeName := gooostrings.ToSnakeCase(t.String())
+			primaryKey := field.AssociationPrimaryKey()
+			idents = append(idents, renderer.AssociationIdent{
+				PrimaryKey:      primaryKey,
+				FieldName:       field.Name,
+				TypeName:        typeName,
+				TypeElementExpr: field.TypeElementExpr,
+				Slice:           ok,
+				Ref:             field.IsRef(),
+			})
+		}
+	}
+
+	return idents
+}
+
+func (s Schema) PrimaryKey() string {
+	for i := range s.Fields {
+		if s.Fields[i].Tag.PrimaryKey {
 			return s.Fields[i].Name
 		}
 	}
 
 	return ""
-}
-
-type Field struct {
-	Name    string
-	Type    FieldType
-	Tag     string
-	Options FieldOptions
-}
-
-func (f Field) String() string {
-	str := ""
-	field := fmt.Sprintf("\t%s %s", f.Name, f.Type)
-	if f.Tag != "" {
-		str = fmt.Sprintf("%s `%s`\n", field, f.Tag)
-	} else {
-		str = fmt.Sprintf("%s\n", field)
-	}
-
-	return str
-}
-
-func (f Field) ColumnName() string {
-	return gooostrings.ToSnakeCase(f.Name)
-}
-
-func (f Field) IsMutable() bool {
-	return !f.Options.Immutable && !f.Options.Ignore
-}
-
-func (f Field) IsImmutable() bool {
-	return f.Options.Immutable && !f.Options.Ignore
-}
-
-func (f Field) IsAssociation() bool {
-	return f.Options.Association != nil
-}
-
-type Validator struct {
-	Fields   []string
-	Validate validator.Validator
-}
-
-type Association struct {
-	Slice  bool
-	Schema Schema
-}
-
-type FieldOptions struct {
-	Immutable   bool
-	PrimaryKey  bool
-	Ignore      bool // ignore fields for insert and update like fields of association.
-	Association *Association
-	Validators  []Validator
 }

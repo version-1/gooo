@@ -1,6 +1,7 @@
 package strings
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -108,4 +109,41 @@ func ToKebabCase(s string) string {
 
 			return string(s)
 		})
+}
+
+func ToPlural(word string) string {
+	w := strings.ToLower(word)
+	irregular := map[string]string{
+		"man":    "men",
+		"woman":  "women",
+		"child":  "children",
+		"tooth":  "teeth",
+		"foot":   "feet",
+		"mouse":  "mice",
+		"person": "people",
+	}
+
+	if plural, ok := irregular[w]; ok {
+		return plural
+	}
+
+	// 末尾が "s", "x", "z", "ch", "sh" で終わる単語の場合
+	if matched, _ := regexp.MatchString("(s|x|z|ch|sh)$", w); matched {
+		return word + "es"
+	}
+
+	// 末尾が "f" または "fe" で終わる単語の場合
+	if strings.HasSuffix(w, "fe") {
+		return word[:len(w)-2] + "ves"
+	} else if strings.HasSuffix(w, "f") {
+		return word[:len(w)-1] + "ves"
+	}
+
+	// 子音 + yで終わる単語の場合
+	if matched, _ := regexp.MatchString("[^aeiou]y$", w); matched {
+		return w[:len(w)-1] + "ies"
+	}
+
+	// 通常の規則 (末尾に "s" を追加)
+	return w + "s"
 }

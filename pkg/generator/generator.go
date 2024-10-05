@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/version-1/gooo/pkg/errors"
+	"github.com/version-1/gooo/pkg/util"
 )
 
 type Generator struct {
@@ -18,8 +21,13 @@ type Template interface {
 
 func (g Generator) Run() error {
 	tmpl := g.Template
-	filename := filepath.Clean(fmt.Sprintf("%s/%s.go", g.Dir, tmpl.Filename()))
-	fmt.Println("Generating: ", filename)
+	relativePath := filepath.Clean(fmt.Sprintf("%s/%s.go", g.Dir, tmpl.Filename()))
+	rootPath, err := util.LookupGomodDirPath()
+	if err != nil {
+		return err
+	}
+	filename := filepath.Clean(fmt.Sprintf("%s/%s", rootPath, relativePath))
+	fmt.Println("Generating: ", relativePath)
 	s, err := g.Template.Render()
 	if err != nil {
 		return err
@@ -27,7 +35,7 @@ func (g Generator) Run() error {
 
 	f, err := os.Create(filename)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	defer f.Close()
