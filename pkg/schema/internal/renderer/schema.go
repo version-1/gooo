@@ -1,4 +1,4 @@
-package schema
+package renderer
 
 import (
 	"fmt"
@@ -11,15 +11,47 @@ import (
 	"golang.org/x/tools/imports"
 )
 
+const GeneratedFilePrefix = "generated--"
+
+var errorsPackage = fmt.Sprintf("goooerrors \"%s\"", "github.com/version-1/gooo/pkg/errors")
+var ormerrPackage = fmt.Sprintf("ormerrors \"%s\"", "github.com/version-1/gooo/pkg/datasource/orm/errors")
+var schemaPackage = "\"github.com/version-1/gooo/pkg/schema\""
+var utilPackage = "\"github.com/version-1/gooo/pkg/util\""
+var stringsPackage = "gooostrings \"github.com/version-1/gooo/pkg/strings\""
+var jsonapiPackage = "\"github.com/version-1/gooo/pkg/presenter/jsonapi\""
+
+type AssociationIdent struct {
+	FieldName       string
+	PrimaryKey      string
+	TypeElementExpr string
+	TypeName        string
+	Slice           bool
+	Ref             bool
+}
+
+type schema interface {
+	GetName() string
+	GetTableName() string
+	FieldNames() []string
+	AttributeFieldNames() []string
+	MutableColumns() []string
+	MutableFieldNames() []string
+	AssociationFieldIdents() []AssociationIdent
+	PrimaryKey() string
+	Columns() []string
+	ColumnFieldNames() []string
+	SetClause() []string
+}
+
 type SchemaTemplate struct {
-	filename string
+	Basename string
 	URL      string
 	Package  string
-	Schema   Schema
+	Schema   schema
 }
 
 func (s SchemaTemplate) Filename() string {
-	return fmt.Sprintf("generated--%s", util.Basename(strings.ToLower(s.filename)))
+	return fmt.Sprintf("generated--%s", util.Basename(strings.ToLower(s.Basename)))
 }
 
 func (s SchemaTemplate) Render() (string, error) {
@@ -34,7 +66,7 @@ func (s SchemaTemplate) Render() (string, error) {
 
 	// columns
 	str += template.Method{
-		Receiver:    s.Schema.Name,
+		Receiver:    s.Schema.GetName(),
 		Name:        "Columns",
 		Args:        []template.Arg{},
 		ReturnTypes: []string{"[]string"},
@@ -46,11 +78,11 @@ func (s SchemaTemplate) Render() (string, error) {
 
 	// scan
 	scanFields := []string{}
-	for _, f := range s.Schema.ColumnFields() {
-		scanFields = append(scanFields, fmt.Sprintf("&obj.%s", f.Name))
+	for _, n := range s.Schema.ColumnFieldNames() {
+		scanFields = append(scanFields, fmt.Sprintf("&obj.%s", n))
 	}
 
-	receiver := template.Pointer(s.Schema.Name)
+	receiver := template.Pointer(s.Schema.GetName())
 	methods := []template.Method{
 		{
 			Receiver: receiver,
@@ -89,7 +121,7 @@ func (s SchemaTemplate) Render() (string, error) {
 				return goooerrors.Wrap(err)
 			}
 
-			return nil`, s.Schema.TableName),
+			return nil`, s.Schema.GetTableName()),
 		},
 		{
 			Receiver: receiver,
@@ -121,7 +153,7 @@ func (s SchemaTemplate) Render() (string, error) {
 
 			return nil`,
 				strings.Join(s.Schema.Columns(), ", "),
-				s.Schema.TableName,
+				s.Schema.GetTableName(),
 			),
 		},
 	}
@@ -144,7 +176,7 @@ func (s SchemaTemplate) defineValidate() string {
 	str += "return nil"
 
 	return template.Method{
-		Receiver:    s.Schema.Name,
+		Receiver:    s.Schema.GetName(),
 		Name:        "validate",
 		Args:        []template.Arg{},
 		ReturnTypes: []string{"ormerrors.ValidationError"},
@@ -158,15 +190,15 @@ func (s SchemaTemplate) defineSave() string {
 		ON CONFLICT(id) DO UPDATE SET %s
 		RETURNING %s
   `,
-		s.Schema.TableName,
+		s.Schema.GetTableName(),
 		strings.Join(s.Schema.MutableColumns(), ", "),
 		strings.Join(s.Schema.SetClause(), ", "),
 		strings.Join(s.Schema.Columns(), ", "),
 	)
 
 	mutableValues := []string{}
-	for _, f := range s.Schema.MutableFields() {
-		mutableValues = append(mutableValues, fmt.Sprintf("obj.%s", f.Name))
+	for _, n := range s.Schema.MutableFieldNames() {
+		mutableValues = append(mutableValues, fmt.Sprintf("obj.%s", n))
 	}
 
 	validateStr := `if err := obj.validate(); err != nil {
@@ -175,7 +207,7 @@ func (s SchemaTemplate) defineSave() string {
 		`
 
 	return template.Method{
-		Receiver: template.Pointer(s.Schema.Name),
+		Receiver: template.Pointer(s.Schema.GetName()),
 		Name:     "Save",
 		Args: []template.Arg{
 			{Name: "ctx", Type: "context.Context"},
@@ -199,15 +231,15 @@ func (s SchemaTemplate) defineSave() string {
 
 func (s SchemaTemplate) defineAssign() string {
 	fields := []string{}
-	for _, f := range s.Schema.Fields {
-		fields = append(fields, fmt.Sprintf("obj.%s = v.%s", f.Name, f.Name))
+	for _, n := range s.Schema.FieldNames() {
+		fields = append(fields, fmt.Sprintf("obj.%s = v.%s", n, n))
 	}
 
 	return template.Method{
-		Receiver: template.Pointer(s.Schema.Name),
+		Receiver: template.Pointer(s.Schema.GetName()),
 		Name:     "Assign",
 		Args: []template.Arg{
-			{Name: "v", Type: s.Schema.Name},
+			{Name: "v", Type: s.Schema.GetName()},
 		},
 		ReturnTypes: []string{},
 		Body:        strings.Join(fields, "\n"),
