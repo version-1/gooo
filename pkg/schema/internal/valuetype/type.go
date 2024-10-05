@@ -1,6 +1,9 @@
-package schema
+package valuetype
 
-import "fmt"
+import (
+	"fmt"
+	"go/ast"
+)
 
 type FieldType fmt.Stringer
 
@@ -64,6 +67,11 @@ func (p ref) Element() FieldType {
 	return p.Type
 }
 
+func MayRef(f FieldType) bool {
+	_, ok := f.(ref)
+	return ok
+}
+
 func Ref(f FieldType) ref {
 	return ref{Type: f}
 }
@@ -80,6 +88,11 @@ func (s slice) Element() FieldType {
 	return s.Type
 }
 
+func MaySlice(f FieldType) bool {
+	_, ok := f.(slice)
+	return ok
+}
+
 func Slice(f FieldType) slice {
 	return slice{Type: f}
 }
@@ -91,6 +104,11 @@ type maptype struct {
 
 func (m maptype) String() string {
 	return fmt.Sprintf("map[%s]%s\n", m.Key, m.Value)
+}
+
+func MayMap(f FieldType) bool {
+	_, ok := f.(maptype)
+	return ok
 }
 
 func Map(key, value FieldType) maptype {
@@ -114,4 +132,33 @@ func convertType(s string) FieldValueType {
 	}
 
 	return FieldValueType(s)
+}
+
+func ResolveTypeName(f ast.Expr) (FieldType, string) {
+	var typeName FieldType
+	var typeElementExpr string
+	switch t := f.(type) {
+	case *ast.Ident:
+		typeElementExpr = t.Name
+		typeName = convertType(typeElementExpr)
+	case *ast.SelectorExpr:
+		typeElementExpr = fmt.Sprintf("%s.%s", t.X, t.Sel)
+		typeName = convertType(typeElementExpr)
+	case *ast.StarExpr:
+		tn, te := ResolveTypeName(t.X)
+		typeElementExpr = te
+		typeName = Ref(tn)
+	case *ast.ArrayType:
+		tn, te := ResolveTypeName(t.Elt)
+		typeElementExpr = fmt.Sprintf("%s", tn)
+		typeName = Slice(convertType(te))
+	case *ast.MapType:
+		typeName = Map(
+			convertType(fmt.Sprintf("%s", t.Key)),
+			convertType(fmt.Sprintf("%s", t.Value)),
+		)
+		typeElementExpr = typeName.String()
+	}
+
+	return typeName, typeElementExpr
 }

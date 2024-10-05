@@ -1,8 +1,75 @@
 package schema
 
 import (
+	"fmt"
 	"strings"
+
+	"github.com/version-1/gooo/pkg/datasource/orm/validator"
+	"github.com/version-1/gooo/pkg/schema/internal/valuetype"
+	gooostrings "github.com/version-1/gooo/pkg/strings"
 )
+
+type Field struct {
+	Name            string
+	Type            valuetype.FieldType
+	TypeElementExpr string
+	Tag             FieldTag
+	Association     *Association
+}
+
+func (f Field) String() string {
+	str := ""
+	field := fmt.Sprintf("\t%s %s", f.Name, f.Type)
+	str = fmt.Sprintf("%s\n", field)
+
+	return str
+}
+
+func (f Field) ColumnName() string {
+	return gooostrings.ToSnakeCase(f.Name)
+}
+
+func (f Field) IsMutable() bool {
+	return !f.Tag.Immutable && !f.Tag.Ignore
+}
+
+func (f Field) IsImmutable() bool {
+	return f.Tag.Immutable && !f.Tag.Ignore
+}
+
+func (f Field) IsAssociation() bool {
+	return f.Tag.Association
+}
+
+func (f Field) IsSlice() bool {
+	return valuetype.MaySlice(f.Type)
+}
+
+func (f Field) IsMap() bool {
+	return valuetype.MayMap(f.Type)
+}
+
+func (f Field) IsRef() bool {
+	return valuetype.MayRef(f.Type)
+}
+
+func (f Field) AssociationPrimaryKey() string {
+	if f.Association == nil {
+		return ""
+	}
+
+	return f.Association.Schema.PrimaryKey()
+}
+
+type Validator struct {
+	Fields   []string
+	Validate validator.Validator
+}
+
+type Association struct {
+	Slice  bool
+	Schema *Schema
+}
 
 type validationKeys string
 

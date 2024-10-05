@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/version-1/gooo/pkg/schema/internal/valuetype"
 )
 
 func TestParser_Parse(t *testing.T) {
@@ -19,7 +20,7 @@ func TestParser_Parse(t *testing.T) {
 		Fields: []Field{
 			{
 				Name:            "ID",
-				Type:            FieldType(Int),
+				Type:            valuetype.Int,
 				TypeElementExpr: "int",
 				Tag: FieldTag{
 					Raw:        []string{"primary_key", "immutable"},
@@ -29,7 +30,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "UserID",
-				Type:            FieldType(Int),
+				Type:            valuetype.Int,
 				TypeElementExpr: "int",
 				Tag: FieldTag{
 					Raw:   []string{"index"},
@@ -38,7 +39,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "Bio",
-				Type:            FieldType(String),
+				Type:            valuetype.String,
 				TypeElementExpr: "string",
 				Tag: FieldTag{
 					Raw:       []string{"type=text"},
@@ -47,7 +48,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "CreatedAt",
-				Type:            FieldType(Time),
+				Type:            valuetype.Time,
 				TypeElementExpr: "time.Time",
 				Tag: FieldTag{
 					Raw:       []string{"immutable"},
@@ -56,7 +57,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "UpdatedAt",
-				Type:            FieldType(Time),
+				Type:            valuetype.Time,
 				TypeElementExpr: "time.Time",
 				Tag: FieldTag{
 					Raw:       []string{"immutable"},
@@ -72,7 +73,7 @@ func TestParser_Parse(t *testing.T) {
 		Fields: []Field{
 			{
 				Name:            "ID",
-				Type:            FieldType(Int),
+				Type:            valuetype.Int,
 				TypeElementExpr: "int",
 				Tag: FieldTag{
 					Raw:        []string{"primary_key", "immutable"},
@@ -82,7 +83,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "Username",
-				Type:            FieldType(String),
+				Type:            valuetype.String,
 				TypeElementExpr: "string",
 				Tag: FieldTag{
 					Raw:    []string{"unique"},
@@ -91,7 +92,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "Email",
-				Type:            FieldType(String),
+				Type:            valuetype.String,
 				TypeElementExpr: "string",
 				Tag: FieldTag{
 					Raw: []string{},
@@ -99,7 +100,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "RefreshToken",
-				Type:            FieldType(String),
+				Type:            valuetype.String,
 				TypeElementExpr: "string",
 				Tag: FieldTag{
 					Raw: []string{},
@@ -107,7 +108,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "Timezone",
-				Type:            FieldType(String),
+				Type:            valuetype.String,
 				TypeElementExpr: "string",
 				Tag: FieldTag{
 					Raw: []string{},
@@ -115,7 +116,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "TimeDiff",
-				Type:            FieldType(Int),
+				Type:            valuetype.Int,
 				TypeElementExpr: "int",
 				Tag: FieldTag{
 					Raw: []string{},
@@ -123,7 +124,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "CreatedAt",
-				Type:            FieldType(Time),
+				Type:            valuetype.Time,
 				TypeElementExpr: "time.Time",
 				Tag: FieldTag{
 					Raw:       []string{"immutable"},
@@ -132,7 +133,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			{
 				Name:            "UpdatedAt",
-				Type:            FieldType(Time),
+				Type:            valuetype.Time,
 				TypeElementExpr: "time.Time",
 				Tag: FieldTag{
 					Raw:       []string{"immutable"},
@@ -144,7 +145,7 @@ func TestParser_Parse(t *testing.T) {
 
 	profileField := Field{
 		Name:            "Profile",
-		Type:            Ref(FieldValueType("Profile")),
+		Type:            valuetype.Ref(valuetype.FieldValueType("Profile")),
 		TypeElementExpr: "Profile",
 		Tag: FieldTag{
 			Raw:         []string{"association"},
@@ -158,7 +159,7 @@ func TestParser_Parse(t *testing.T) {
 
 	postsField := Field{
 		Name:            "Posts",
-		Type:            Slice(FieldValueType("Post")),
+		Type:            valuetype.Slice(valuetype.FieldValueType("Post")),
 		TypeElementExpr: "Post",
 		Tag: FieldTag{
 			Raw:         []string{"association"},
@@ -172,7 +173,7 @@ func TestParser_Parse(t *testing.T) {
 				Fields: []Field{
 					{
 						Name:            "ID",
-						Type:            FieldType(Int),
+						Type:            valuetype.Int,
 						TypeElementExpr: "int",
 						Tag: FieldTag{
 							Raw:        []string{"primary_key", "immutable"},
@@ -182,7 +183,7 @@ func TestParser_Parse(t *testing.T) {
 					},
 					{
 						Name:            "UserID",
-						Type:            FieldType(Int),
+						Type:            valuetype.Int,
 						TypeElementExpr: "int",
 						Tag: FieldTag{
 							Raw:   []string{"index"},
@@ -191,7 +192,7 @@ func TestParser_Parse(t *testing.T) {
 					},
 					{
 						Name:            "Title",
-						Type:            FieldType(String),
+						Type:            valuetype.String,
 						TypeElementExpr: "string",
 						Tag: FieldTag{
 							Raw: []string{},
@@ -199,7 +200,7 @@ func TestParser_Parse(t *testing.T) {
 					},
 					{
 						Name:            "Body",
-						Type:            FieldType(String),
+						Type:            valuetype.String,
 						TypeElementExpr: "string",
 						Tag: FieldTag{
 							Raw:       []string{"type=text"},
@@ -208,7 +209,7 @@ func TestParser_Parse(t *testing.T) {
 					},
 					{
 						Name:            "CreatedAt",
-						Type:            FieldType(Time),
+						Type:            valuetype.Time,
 						TypeElementExpr: "time.Time",
 						Tag: FieldTag{
 							Raw:       []string{"immutable"},
@@ -217,7 +218,7 @@ func TestParser_Parse(t *testing.T) {
 					},
 					{
 						Name:            "UpdatedAt",
-						Type:            FieldType(Time),
+						Type:            valuetype.Time,
 						TypeElementExpr: "time.Time",
 						Tag: FieldTag{
 							Raw:       []string{"immutable"},
@@ -226,7 +227,7 @@ func TestParser_Parse(t *testing.T) {
 					},
 					{
 						Name:            "User",
-						Type:            FieldValueType("User"),
+						Type:            valuetype.FieldValueType("User"),
 						TypeElementExpr: "User",
 						Tag: FieldTag{
 							Raw:         []string{"association"},
@@ -240,7 +241,7 @@ func TestParser_Parse(t *testing.T) {
 								Fields: []Field{
 									{
 										Name:            "ID",
-										Type:            FieldType(Int),
+										Type:            valuetype.Int,
 										TypeElementExpr: "int",
 										Tag: FieldTag{
 											Raw:        []string{"primary_key", "immutable"},
@@ -250,7 +251,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "Username",
-										Type:            FieldType(String),
+										Type:            valuetype.String,
 										TypeElementExpr: "string",
 										Tag: FieldTag{
 											Raw:    []string{"unique"},
@@ -259,7 +260,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "Email",
-										Type:            FieldType(String),
+										Type:            valuetype.String,
 										TypeElementExpr: "string",
 										Tag: FieldTag{
 											Raw: []string{},
@@ -267,7 +268,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "RefreshToken",
-										Type:            FieldType(String),
+										Type:            valuetype.String,
 										TypeElementExpr: "string",
 										Tag: FieldTag{
 											Raw: []string{},
@@ -275,7 +276,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "Timezone",
-										Type:            FieldType(String),
+										Type:            valuetype.String,
 										TypeElementExpr: "string",
 										Tag: FieldTag{
 											Raw: []string{},
@@ -283,7 +284,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "TimeDiff",
-										Type:            FieldType(Int),
+										Type:            valuetype.Int,
 										TypeElementExpr: "int",
 										Tag: FieldTag{
 											Raw: []string{},
@@ -291,7 +292,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "CreatedAt",
-										Type:            FieldType(Time),
+										Type:            valuetype.Time,
 										TypeElementExpr: "time.Time",
 										Tag: FieldTag{
 											Raw:       []string{"immutable"},
@@ -300,7 +301,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "UpdatedAt",
-										Type:            FieldType(Time),
+										Type:            valuetype.Time,
 										TypeElementExpr: "time.Time",
 										Tag: FieldTag{
 											Raw:       []string{"immutable"},
@@ -309,7 +310,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "Profile",
-										Type:            Ref(FieldValueType("Profile")),
+										Type:            valuetype.Ref(valuetype.FieldValueType("Profile")),
 										TypeElementExpr: "Profile",
 										Tag: FieldTag{
 											Raw:         []string{"association"},
@@ -326,7 +327,7 @@ func TestParser_Parse(t *testing.T) {
 					},
 					{
 						Name:            "Likes",
-						Type:            Slice(FieldValueType("Like")),
+						Type:            valuetype.Slice(valuetype.FieldValueType("Like")),
 						TypeElementExpr: "Like",
 						Tag: FieldTag{
 							Raw:         []string{"association"},
@@ -340,7 +341,7 @@ func TestParser_Parse(t *testing.T) {
 								Fields: []Field{
 									{
 										Name:            "ID",
-										Type:            FieldType(Int),
+										Type:            valuetype.Int,
 										TypeElementExpr: "int",
 										Tag: FieldTag{
 											Raw:        []string{"primary_key", "immutable"},
@@ -350,7 +351,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "LikeableID",
-										Type:            FieldType(Int),
+										Type:            valuetype.Int,
 										TypeElementExpr: "int",
 										Tag: FieldTag{
 											Raw:   []string{"index"},
@@ -359,7 +360,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "LikeableType",
-										Type:            FieldType(String),
+										Type:            valuetype.String,
 										TypeElementExpr: "string",
 										Tag: FieldTag{
 											Raw:   []string{"index"},
@@ -368,7 +369,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "CreatedAt",
-										Type:            FieldType(Time),
+										Type:            valuetype.Time,
 										TypeElementExpr: "time.Time",
 										Tag: FieldTag{
 											Raw:       []string{"immutable"},
@@ -377,7 +378,7 @@ func TestParser_Parse(t *testing.T) {
 									},
 									{
 										Name:            "UpdatedAt",
-										Type:            FieldType(Time),
+										Type:            valuetype.Time,
 										TypeElementExpr: "time.Time",
 										Tag: FieldTag{
 											Raw:       []string{"immutable"},
