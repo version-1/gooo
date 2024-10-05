@@ -1,0 +1,158 @@
+tables:
+    - name: users
+      columns:
+        - name: id
+          type: INT
+          default: ""
+          allow_null: false
+          primary_key: true
+        - name: username
+          type: VARCHAR(255)
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: email
+          type: VARCHAR(255)
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: refresh_token
+          type: VARCHAR(255)
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: timezone
+          type: VARCHAR(255)
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: time_diff
+          type: INT
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: created_at
+          type: TIMESTAMP
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: updated_at
+          type: TIMESTAMP
+          default: ""
+          allow_null: false
+          primary_key: false
+      indexes:
+        - name: index_users_username
+          columns:
+            - username
+          unique: true
+          foreign_key: null
+    - name: posts
+      columns:
+        - name: id
+          type: INT
+          default: ""
+          allow_null: false
+          primary_key: true
+        - name: user_id
+          type: INT
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: title
+          type: VARCHAR(255)
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: body
+          type: text
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: created_at
+          type: TIMESTAMP
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: updated_at
+          type: TIMESTAMP
+          default: ""
+          allow_null: false
+          primary_key: false
+      indexes:
+        - name: index_posts_user_id
+          columns:
+            - user_id
+          unique: false
+          foreign_key: null
+    - name: profiles
+      columns:
+        - name: id
+          type: INT
+          default: ""
+          allow_null: false
+          primary_key: true
+        - name: user_id
+          type: INT
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: bio
+          type: text
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: created_at
+          type: TIMESTAMP
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: updated_at
+          type: TIMESTAMP
+          default: ""
+          allow_null: false
+          primary_key: false
+      indexes:
+        - name: index_profiles_user_id
+          columns:
+            - user_id
+          unique: false
+          foreign_key: null
+    - name: likes
+      columns:
+        - name: id
+          type: INT
+          default: ""
+          allow_null: false
+          primary_key: true
+        - name: likeable_id
+          type: INT
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: likeable_type
+          type: VARCHAR(255)
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: created_at
+          type: TIMESTAMP
+          default: ""
+          allow_null: false
+          primary_key: false
+        - name: updated_at
+          type: TIMESTAMP
+          default: ""
+          allow_null: false
+          primary_key: false
+      indexes:
+        - name: index_likes_likeable_id
+          columns:
+            - likeable_id
+          unique: false
+          foreign_key: null
+        - name: index_likes_likeable_type
+          columns:
+            - likeable_type
+          unique: false
+          foreign_key: null

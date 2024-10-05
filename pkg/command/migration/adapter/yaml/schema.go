@@ -8,6 +8,7 @@ import (
 
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 	"github.com/version-1/gooo/pkg/db"
+	"github.com/version-1/gooo/pkg/errors"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -106,6 +107,10 @@ func (s *OriginSchema) Load(path string) error {
 	return load(path, s)
 }
 
+func (s *OriginSchema) Write(path string) error {
+	return write(path, s)
+}
+
 func (s *OriginSchema) Up(ctx context.Context, db db.Tx) error {
 	for _, t := range s.Tables {
 		if _, err := db.ExecContext(ctx, t.Query()); err != nil {
@@ -163,12 +168,31 @@ func (s *RawSchema) Down(ctx context.Context, tx db.Tx) error {
 func load(path string, schema any) error {
 	f, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	err = yaml.Unmarshal(f, schema)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
+func write(path string, schema any) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	defer f.Close()
+
+	b, err := yaml.Marshal(schema)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	if _, err = f.Write(b); err != nil {
+		return errors.Wrap(err)
 	}
 
 	return nil

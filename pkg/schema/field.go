@@ -29,6 +29,21 @@ func (f Field) ColumnName() string {
 	return gooostrings.ToSnakeCase(f.Name)
 }
 
+func (f Field) TableType() string {
+	v, ok := f.Type.(valuetype.FieldValueType)
+	if ok {
+		var opt *valuetype.FieldTableOption
+		if f.Tag.TableType != "" {
+			opt = &valuetype.FieldTableOption{
+				Type: f.Tag.TableType,
+			}
+		}
+		return v.TableType(opt)
+	}
+
+	return f.Type.String()
+}
+
 func (f Field) IsMutable() bool {
 	return !f.Tag.Immutable && !f.Tag.Ignore
 }
@@ -81,15 +96,17 @@ const (
 )
 
 type FieldTag struct {
-	Raw         []string
-	PrimaryKey  bool
-	Immutable   bool
-	Ignore      bool
-	Unique      bool
-	Index       bool
-	Association bool
-	TableType   string
-	Validators  []string
+	Raw          []string
+	PrimaryKey   bool
+	Immutable    bool
+	Ignore       bool
+	Unique       bool
+	Index        bool
+	DefaultValue string
+	AllowNull    bool
+	Association  bool
+	TableType    string
+	Validators   []string
 }
 
 func parseTag(tag string) FieldTag {
@@ -114,12 +131,21 @@ func parseTag(tag string) FieldTag {
 			options.Index = true
 		case "association":
 			options.Association = true
+		case "allow_null":
+			options.AllowNull = true
 		}
 
 		if strings.HasPrefix(t, "type=") {
 			segments := strings.Split(t, "=")
 			if len(segments) > 1 {
 				options.TableType = segments[1]
+			}
+		}
+
+		if strings.HasPrefix(t, "default=") {
+			segments := strings.Split(t, "=")
+			if len(segments) > 1 {
+				options.DefaultValue = segments[1]
 			}
 		}
 
