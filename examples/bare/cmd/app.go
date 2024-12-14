@@ -1,0 +1,56 @@
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+
+	"github.com/version-1/gooo/pkg/core/app"
+	"github.com/version-1/gooo/pkg/core/request"
+	"github.com/version-1/gooo/pkg/core/response"
+	"github.com/version-1/gooo/pkg/core/route"
+	"github.com/version-1/gooo/pkg/toolkit/logger"
+)
+
+func main() {
+	cfg := &app.Config{}
+	cfg.SetLogger(logger.DefaultLogger)
+
+	server := &app.App{
+		Addr:   ":8080",
+		Config: cfg,
+		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+			cfg.Logger().Errorf("Error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal server error"))
+		},
+	}
+	users := route.GroupHandler{
+		Path: "/users",
+		Handlers: []route.HandlerInterface{
+			route.JSON[request.Void, any]().Get("", func(res *response.Response[any], req *request.Request[request.Void]) {
+				res.Render(map[string]string{"message": "ok"})
+			}),
+			route.JSON[any, any]().Post("", func(res *response.Response[any], req *request.Request[any]) {
+				res.Render(map[string]string{"message": "ok"})
+			}),
+			route.JSON[request.Void, any]().Get(":id", func(res *response.Response[any], req *request.Request[request.Void]) {
+				res.Render(map[string]string{"message": "ok"})
+			}),
+			route.JSON[request.Void, any]().Patch(":id", func(res *response.Response[any], req *request.Request[request.Void]) {
+				res.Render(map[string]string{"message": "ok"})
+			}),
+			route.JSON[request.Void, any]().Delete(":id", func(res *response.Response[any], req *request.Request[request.Void]) {
+				res.Render(map[string]string{"message": "ok"})
+			}),
+		},
+	}
+
+	handlers := users.List()
+	app.WithDefaultMiddlewares(server, handlers)
+
+	ctx := context.Background()
+	if err := server.Run(ctx); err != nil {
+		log.Fatalf("failed to run app: %s", err)
+	}
+}
