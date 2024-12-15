@@ -26,6 +26,7 @@ func main() {
 			w.Write([]byte("Internal server error"))
 		},
 	}
+
 	users := route.GroupHandler{
 		Path: "/users",
 		Handlers: []route.HandlerInterface{
@@ -46,10 +47,12 @@ func main() {
 			}),
 		},
 	}
-
-	handlers := users.List()
-	app.WithDefaultMiddlewares(server, handlers)
-	route.Walk(handlers, func(h middleware.Handler) {
+	apiv1 := route.GroupHandler{
+		Path: "/api/v1",
+	}
+	apiv1.Add(users.Children()...)
+	app.WithDefaultMiddlewares(server, apiv1.Children()...)
+	route.Walk(apiv1.Children(), func(h middleware.Handler) {
 		server.Logger().Infof("%s", h.String())
 	})
 

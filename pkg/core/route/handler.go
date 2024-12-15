@@ -24,8 +24,20 @@ type Handler[I, O any] struct {
 	adapter response.Adapter
 }
 
-func (h *Handler[I, O]) ShiftPath(base string) {
-	h.Path = filepath.Clean(base + "/" + h.Path)
+func (h *Handler[I, O]) clone() *Handler[I, O] {
+	return &Handler[I, O]{
+		Path:    h.Path,
+		Method:  h.Method,
+		handler: h.handler,
+		params:  h.params,
+		adapter: h.adapter,
+	}
+}
+
+func (h *Handler[I, O]) ShiftPath(base string) HandlerInterface {
+	cloned := h.clone()
+	cloned.Path = filepath.Clean(base + "/" + h.Path)
+	return cloned
 }
 
 func (h Handler[I, O]) String() string {

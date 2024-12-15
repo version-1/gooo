@@ -5,11 +5,16 @@ import (
 
 	"github.com/version-1/gooo/pkg/core/context"
 	"github.com/version-1/gooo/pkg/core/middleware"
+	"github.com/version-1/gooo/pkg/core/route"
 
 	helper "github.com/version-1/gooo/pkg/toolkit/middleware"
 )
 
-func WithDefaultMiddlewares(a *App, handlers []helper.Handler) middleware.Middlewares {
+func WithDefaultMiddlewares(a *App, handlers ...route.HandlerInterface) middleware.Middlewares {
+	_handlers := make([]helper.Handler, len(handlers))
+	for i, h := range handlers {
+		_handlers[i] = h
+	}
 	a.Middlewares = middleware.Middlewares([]middleware.Middleware{
 		helper.WithContext(
 			func(r *http.Request) *http.Request {
@@ -21,7 +26,7 @@ func WithDefaultMiddlewares(a *App, handlers []helper.Handler) middleware.Middle
 		),
 		helper.RequestLogger(a.Logger()),
 		helper.RequestBodyLogger(a.Logger()),
-		helper.RequestHandler(handlers),
+		helper.RequestHandler(_handlers),
 		helper.ResponseLogger(a.Logger()),
 	})
 
