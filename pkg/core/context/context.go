@@ -2,6 +2,8 @@ package context
 
 import (
 	"context"
+	"errors"
+	"fmt"
 )
 
 const (
@@ -9,7 +11,13 @@ const (
 )
 
 func Get[T any](ctx context.Context, key string) T {
-	return ctx.Value(key).(T)
+	v, ok := ctx.Value(key).(T)
+	if !ok {
+		err := errors.New(fmt.Sprintf("context value not found: %s", key))
+		panic(err)
+	}
+
+	return v
 }
 
 func With[T any](ctx context.Context, key string, value T) context.Context {

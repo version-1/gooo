@@ -37,9 +37,10 @@ func ResponseLogger(logger logger.Logger) middleware.Middleware {
 func RequestBodyLogger(logger logger.Logger) middleware.Middleware {
 	return middleware.Middleware{
 		Name: "RequestBodyLogger",
-		If:   middleware.Always,
+		If: func(r *http.Request) bool {
+			return r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodPatch
+		},
 		Do: func(w http.ResponseWriter, r *http.Request) bool {
-			defer r.Body.Close()
 			b, err := io.ReadAll(r.Body)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -48,10 +49,13 @@ func RequestBodyLogger(logger logger.Logger) middleware.Middleware {
 				return false
 			}
 
-			io.Copy(w, io.MultiReader(bytes.NewReader(b), r.Body))
 			if len(b) > 0 {
 				logger.Infof("body: %s", b)
 			}
+
+			r.Body.Close()
+			r.Body = io.NopCloser(bytes.NewReader(b))
+
 			return true
 		},
 	}
@@ -90,7 +94,8 @@ func WithContext(callbacks ...func(r *http.Request) *http.Request) middleware.Mi
 		If:   middleware.Always,
 		Do: func(w http.ResponseWriter, r *http.Request) bool {
 			for _, cb := range callbacks {
-				r = cb(r)
+				req := cb(r)
+				*r = *req
 			}
 
 			return true

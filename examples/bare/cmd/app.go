@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/version-1/gooo/pkg/core/app"
 	"github.com/version-1/gooo/pkg/core/request"
@@ -13,6 +14,19 @@ import (
 	"github.com/version-1/gooo/pkg/toolkit/middleware"
 )
 
+type User struct {
+	ID       string    `json:"id"`
+	Username string    `json:"name"`
+	Email    string    `json:"email"`
+	Created  time.Time `json:"created"`
+	Updated  time.Time `json:"updated"`
+}
+
+type UserCreate struct {
+	Username string `json:"name"`
+	Email    string `json:"email"`
+}
+
 func main() {
 	cfg := &app.Config{}
 	cfg.SetLogger(logger.DefaultLogger)
@@ -21,7 +35,7 @@ func main() {
 		Addr:   ":8080",
 		Config: cfg,
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
-			cfg.Logger().Errorf("Error: %v", err)
+			cfg.Logger().Errorf("Error: %+v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Internal server error"))
 		},
@@ -33,8 +47,22 @@ func main() {
 			route.JSON[request.Void, map[string]string]().Get("", func(res *response.Response[map[string]string], req *request.Request[request.Void]) {
 				res.Render(map[string]string{"message": "ok"})
 			}),
-			route.JSON[any, any]().Post("", func(res *response.Response[any], req *request.Request[any]) {
-				res.Render(map[string]string{"message": "ok"})
+			route.JSON[UserCreate, User]().Post("", func(res *response.Response[User], req *request.Request[UserCreate]) {
+				body, err := req.Body()
+				if err != nil {
+					res.BadRequest(err)
+					return
+				}
+
+				now := time.Now()
+				user := User{
+					ID:       "1",
+					Username: body.Username,
+					Email:    body.Email,
+					Created:  now,
+					Updated:  now,
+				}
+				res.Render(user)
 			}),
 			route.JSON[request.Void, any]().Get(":id", func(res *response.Response[any], req *request.Request[request.Void]) {
 				res.Render(map[string]string{"message": "ok"})

@@ -37,26 +37,31 @@ func (r *Response[O]) WriteHeader(code int) {
 	r.status = code
 }
 
-func (r Response[O]) renderError(w http.ResponseWriter, err error) {
-	r.adapter.Error(w, err, r.status)
+func (r Response[O]) renderError(err error) {
+	r.adapter.Error(r.ResponseWriter, err, r.status)
 }
 
-func (r Response[O]) InternalServerError(w http.ResponseWriter, err error) {
+func (r Response[O]) InternalServerError(err error) {
 	r.status = http.StatusInternalServerError
-	r.renderError(w, err)
+	r.renderError(err)
 }
 
-func (r Response[O]) NotFound(w http.ResponseWriter, err error) {
+func (r Response[O]) NotFound(err error) {
 	r.status = http.StatusNotFound
-	r.renderError(w, err)
+	r.renderError(err)
 }
 
-func (r Response[O]) BadRequest(w http.ResponseWriter, err error) {
+func (r Response[O]) BadRequest(err error) {
 	r.status = http.StatusBadRequest
-	r.renderError(w, err)
+	r.renderError(err)
 }
 
-func (r Response[O]) UnprocessableEntity(w http.ResponseWriter, err error) {
+func (r Response[O]) UnprocessableEntity(err error) {
 	r.status = http.StatusUnprocessableEntity
-	r.renderError(w, err)
+	r.renderError(err)
+}
+
+func (r Response[O]) Unauthorized(err error) {
+	r.status = http.StatusUnauthorized
+	r.renderError(err)
 }

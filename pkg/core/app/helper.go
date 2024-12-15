@@ -27,7 +27,7 @@ func WithDefaultMiddlewares(a *App, handlers ...route.HandlerInterface) middlewa
 		helper.RequestLogger(a.Logger()),
 		helper.RequestBodyLogger(a.Logger()),
 		helper.RequestHandler(_handlers),
-		helper.ResponseLogger(a.Logger()),
+		helper.ResponseLogger(a.Logger()), // TODO: not implemented
 	})
 
 	return a.Middlewares

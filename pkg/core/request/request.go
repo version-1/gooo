@@ -2,6 +2,7 @@ package request
 
 import (
 	gocontext "context"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -42,8 +43,12 @@ func (r *Request[I]) Body() (I, error) {
 		r.body = &b
 	}
 
-	return res, nil
+	if err := json.Unmarshal(*r.body, &res); err != nil {
+		r.Logger().Errorf("failed to unmarshal request body: %s", err)
+		return res, nil
+	}
 
+	return res, nil
 }
 
 type loggerGetter interface {
