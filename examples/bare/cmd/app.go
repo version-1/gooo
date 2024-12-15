@@ -10,6 +10,7 @@ import (
 	"github.com/version-1/gooo/pkg/core/response"
 	"github.com/version-1/gooo/pkg/core/route"
 	"github.com/version-1/gooo/pkg/toolkit/logger"
+	"github.com/version-1/gooo/pkg/toolkit/middleware"
 )
 
 func main() {
@@ -28,7 +29,7 @@ func main() {
 	users := route.GroupHandler{
 		Path: "/users",
 		Handlers: []route.HandlerInterface{
-			route.JSON[request.Void, any]().Get("", func(res *response.Response[any], req *request.Request[request.Void]) {
+			route.JSON[request.Void, map[string]string]().Get("", func(res *response.Response[map[string]string], req *request.Request[request.Void]) {
 				res.Render(map[string]string{"message": "ok"})
 			}),
 			route.JSON[any, any]().Post("", func(res *response.Response[any], req *request.Request[any]) {
@@ -48,6 +49,9 @@ func main() {
 
 	handlers := users.List()
 	app.WithDefaultMiddlewares(server, handlers)
+	route.Walk(handlers, func(h middleware.Handler) {
+		server.Logger().Infof("%s", h.String())
+	})
 
 	ctx := context.Background()
 	if err := server.Run(ctx); err != nil {

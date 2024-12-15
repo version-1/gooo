@@ -99,6 +99,7 @@ func WithContext(callbacks ...func(r *http.Request) *http.Request) middleware.Mi
 }
 
 type Handler interface {
+	fmt.Stringer
 	Match(r *http.Request) bool
 	Handler(w http.ResponseWriter, r *http.Request)
 }

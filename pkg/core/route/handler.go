@@ -29,7 +29,7 @@ func (h *Handler[I, O]) ShiftPath(base string) {
 }
 
 func (h Handler[I, O]) String() string {
-	return fmt.Sprintf("Handler [%s] %s", h.Method, h.Path)
+	return fmt.Sprintf("[%s] %s", h.Method, h.Path)
 }
 
 func (h Handler[I, O]) Handler(res http.ResponseWriter, req *http.Request) {

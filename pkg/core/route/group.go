@@ -27,3 +27,9 @@ func (g GroupHandler) List() []middleware.Handler {
 
 	return list
 }
+
+func Walk(list []middleware.Handler, fn func(h middleware.Handler)) {
+	for _, h := range list {
+		fn(h)
+	}
+}
