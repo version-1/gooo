@@ -12,9 +12,15 @@ func JSON[I, O any]() *Handler[I, O] {
 	}
 }
 
-func HTML[I, O any]() *Handler[I, O] {
-	return &Handler[I, O]{
+func HTML[I any]() *Handler[I, []byte] {
+	return &Handler[I, []byte]{
 		adapter: response.HTMLAdapter{},
+	}
+}
+
+func Text[I any]() *Handler[I, []byte] {
+	return &Handler[I, []byte]{
+		adapter: response.TextAdapter{},
 	}
 }
 

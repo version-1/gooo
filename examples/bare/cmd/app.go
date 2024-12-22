@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/version-1/gooo/examples/bare/internal/swagger"
 	"github.com/version-1/gooo/pkg/core/app"
 	"github.com/version-1/gooo/pkg/core/request"
 	"github.com/version-1/gooo/pkg/core/response"
@@ -75,10 +76,29 @@ func main() {
 			}),
 		},
 	}
+	swagger := route.GroupHandler{
+		Path: "/swagger",
+		Handlers: []route.HandlerInterface{
+			route.HTML[request.Void]().Get("", func(res *response.Response[[]byte], req *request.Request[request.Void]) {
+				res.Render(swagger.Index())
+			}),
+			route.Text[request.Void]().Get("swagger.yml", func(res *response.Response[[]byte], req *request.Request[request.Void]) {
+				b, err := swagger.SwaggerYAML()
+				if err != nil {
+					res.InternalServerError(err)
+					return
+				}
+
+				res.Render(b)
+			}),
+		},
+	}
+
 	apiv1 := route.GroupHandler{
 		Path: "/api/v1",
 	}
 	apiv1.Add(users.Children()...)
+	apiv1.Add(swagger.Children()...)
 	app.WithDefaultMiddlewares(server, apiv1.Children()...)
 	route.Walk(apiv1.Children(), func(h middleware.Handler) {
 		server.Logger().Infof("%s", h.String())

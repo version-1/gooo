@@ -55,3 +55,31 @@ func (a HTMLAdapter) Error(w http.ResponseWriter, err error, status int) {
 		panic(err)
 	}
 }
+
+type TextAdapter struct{}
+
+func (a TextAdapter) Render(w http.ResponseWriter, payload any, status int) error {
+	w.Header().Add("Content-Type", "text/plain")
+	w.WriteHeader(status)
+
+	body, ok := payload.([]byte)
+	if !ok {
+		return fmt.Errorf("body must be []byte but got %T", payload)
+	}
+	_, err := w.Write(body)
+	return err
+}
+
+func (a TextAdapter) Error(w http.ResponseWriter, err error, status int) {
+	w.Header().Add("Content-Type", "text/plain")
+	w.WriteHeader(status)
+
+	body := []byte(fmt.Sprintf(`
+    Error: %s \n
+    Status: %d
+  `, err, status))
+
+	if _, err := w.Write(body); err != nil {
+		panic(err)
+	}
+}
