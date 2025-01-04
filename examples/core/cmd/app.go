@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	schema "github.com/version-1/gooo/pkg/core/schemav2"
 )
 
@@ -12,5 +10,9 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("%#v\n", s)
+	g := schema.NewGenerator(s, "./examples/core/generated")
+
+	if err := g.Generate(); err != nil {
+		panic(err)
+	}
 }

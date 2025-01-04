@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/version-1/gooo/pkg/errors"
-	"github.com/version-1/gooo/pkg/util"
+	"github.com/version-1/gooo/pkg/toolkit/errors"
+	"github.com/version-1/gooo/pkg/toolkit/util"
 )
 
 type Generator struct {

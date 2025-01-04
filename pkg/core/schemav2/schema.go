@@ -1,4 +1,4 @@
-package schema
+package schemav2
 
 import (
 	"os"
@@ -90,5 +90,5 @@ type RootSchema struct {
 	Info       Info                `json:"info"`
 	Paths      map[string]PathItem `json:"paths"`
 	Servers    []Server            `json:"servers"`
-	Components Components
+	Components Components          `json:"components"`
 }
