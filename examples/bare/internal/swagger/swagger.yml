@@ -5,10 +5,8 @@ info:
   version: 0.1.9
 
 servers:
-  - url: http://api.example.com/v1
+  - url: http://localhost:8080/api/v1
     description: Optional server description, e.g. Main (production) server
-  - url: http://staging-api.example.com
-    description: Optional server description, e.g. Internal staging server for testing
 
 paths:
   /users:
@@ -23,4 +21,24 @@ paths:
               schema:
                 type: array
                 items:
-                  type: string
+                  $ref: '#/components/schemas/User'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+          sample: "John Doe"
+
