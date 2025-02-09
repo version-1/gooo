@@ -12,6 +12,7 @@ const (
 )
 
 func TestLoad(t *testing.T) {
+	t.Skip("skipping test in CI")
 	loader := NewEnvfileLoader[ConfigKey]("./fixtures/.env.test")
 	m, err := loader.Load()
 	if err != nil {

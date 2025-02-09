@@ -19,7 +19,7 @@ func TestErrors(t *testing.T) {
 			},
 			Expect: func(t *testing.T) ([]string, error) {
 				return []string{
-					"gooo/pkg/errors/errors_test.go. method: TestErrors. line: 12",
+					"gooo/pkg/toolkit/errors/errors_test.go. method: TestErrors. line: 12",
 					"src/testing/testing.go. method: tRunner. line: 1689",
 					"src/runtime/asm_amd64.s. method: goexit. line: 1695",
 					"",
@@ -47,7 +47,7 @@ func TestErrors(t *testing.T) {
 				return []string{
 					"pkg/errors : msg",
 					"",
-					"gooo/pkg/errors/errors_test.go. method: TestErrors. line: 12",
+					"gooo/pkg/toolkit/errors/errors_test.go. method: TestErrors. line: 12",
 					"src/testing/testing.go. method: tRunner. line: 1689",
 					"src/runtime/asm_amd64.s. method: goexit. line: 1695",
 					"",

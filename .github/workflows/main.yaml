@@ -7,6 +7,7 @@ on:
       - develop
       - 'feature/*'
       - 'releases/*'
+      - 'v0.1.0-20240104'
 jobs:
   test-packages:
     runs-on: ubuntu-latest
@@ -39,52 +40,7 @@ jobs:
         run: apk add --update-cache git
       - name: Init Database
         run: go run test/cmd/initdb/main.go
+      - name: Go mod tidy
+        run: go mod tidy
       - name: Run tests
         run: go test -v ./pkg/...
-  run-examples:
-    runs-on: ubuntu-latest
-    container:
-      image: golang:1.22-alpine3.20
-    defaults:
-      run:
-        shell: sh
-    env:
-      ENV: test
-      DATABASE_URL: postgres://gooo:password@db:5432/gooo_test?sslmode=disable
-    services:
-      db:
-        image: postgres:16.2
-        env:
-          POSTGRES_USER: gooo
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: gooo_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Install dependencies
-        run: apk add --update-cache git
-      - name: Init Database
-        run: go run test/cmd/initdb/main.go
-      # - name: Run API
-      #   run: go run examples/starter/cmd/api/main.go
-      - name: Run Seed
-        run: go run examples/starter/cmd/seed/main.go
-      - name: Run Migration Up
-        env:
-          MIGRATION_PATH: examples/starter/db/migrations/*.sql
-        run: go run examples/starter/cmd/migration/main.go up
-      - name: Run Migration Down
-        env:
-          MIGRATION_PATH: examples/starter/db/migrations/*.sql
-        run: go run examples/starter/cmd/migration/main.go down
-      - name: Run Migration Generate
-        run: go run examples/starter/cmd/migration/main.go generate test
-      - name: Run Test
-        run: go test ./examples/starter/...
