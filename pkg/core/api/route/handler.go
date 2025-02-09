@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/version-1/gooo/pkg/core/request"
-	"github.com/version-1/gooo/pkg/core/response"
+	"github.com/version-1/gooo/pkg/core/api/request"
+	"github.com/version-1/gooo/pkg/core/api/response"
 	"github.com/version-1/gooo/pkg/toolkit/middleware"
 )
 

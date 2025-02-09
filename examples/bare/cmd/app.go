@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/version-1/gooo/examples/bare/internal/swagger"
-	"github.com/version-1/gooo/pkg/core/app"
-	"github.com/version-1/gooo/pkg/core/request"
-	"github.com/version-1/gooo/pkg/core/response"
-	"github.com/version-1/gooo/pkg/core/route"
+	"github.com/version-1/gooo/pkg/core/api/app"
+	"github.com/version-1/gooo/pkg/core/api/request"
+	"github.com/version-1/gooo/pkg/core/api/response"
+	"github.com/version-1/gooo/pkg/core/api/route"
 	"github.com/version-1/gooo/pkg/toolkit/logger"
 	"github.com/version-1/gooo/pkg/toolkit/middleware"
 )

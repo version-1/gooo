@@ -3,7 +3,7 @@ package route
 import (
 	"net/http"
 
-	"github.com/version-1/gooo/pkg/core/response"
+	"github.com/version-1/gooo/pkg/core/api/response"
 )
 
 func JSON[I, O any]() *Handler[I, O] {

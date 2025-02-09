@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/version-1/gooo/pkg/core/middleware"
+	"github.com/version-1/gooo/pkg/core/api/middleware"
 	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 

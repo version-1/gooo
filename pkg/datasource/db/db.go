@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/version-1/gooo/pkg/logger"
+	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 
 type QueryRunner interface {

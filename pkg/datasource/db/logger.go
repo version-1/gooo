@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/version-1/gooo/pkg/logger"
+	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 
 type QueryLogger interface {

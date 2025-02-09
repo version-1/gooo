@@ -3,9 +3,9 @@ package app
 import (
 	"net/http"
 
-	"github.com/version-1/gooo/pkg/core/context"
-	"github.com/version-1/gooo/pkg/core/middleware"
-	"github.com/version-1/gooo/pkg/core/route"
+	"github.com/version-1/gooo/pkg/core/api/context"
+	"github.com/version-1/gooo/pkg/core/api/middleware"
+	"github.com/version-1/gooo/pkg/core/api/route"
 
 	helper "github.com/version-1/gooo/pkg/toolkit/middleware"
 )

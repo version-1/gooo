@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/version-1/gooo/pkg/core/context"
+	"github.com/version-1/gooo/pkg/core/api/context"
 	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 

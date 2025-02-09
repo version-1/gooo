@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/version-1/gooo/examples/core/internal/schema"
-	"github.com/version-1/gooo/pkg/core/app"
-	"github.com/version-1/gooo/pkg/core/request"
-	"github.com/version-1/gooo/pkg/core/response"
-	"github.com/version-1/gooo/pkg/core/route"
+	"github.com/version-1/gooo/pkg/core/api/app"
+	"github.com/version-1/gooo/pkg/core/api/request"
+	"github.com/version-1/gooo/pkg/core/api/response"
+	"github.com/version-1/gooo/pkg/core/api/route"
 	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 
@@ -45,13 +45,13 @@ func RegisterRoutes(srv *app.App) {
 			route.JSON[schema.MutateUser, schema.User]().Post("/users", func(res *response.Response[schema.User], req *request.Request[schema.MutateUser]) {
 				// do something
 			}),
+			route.JSON[schema.MutateUser, schema.User]().Patch("/users/{id}", func(res *response.Response[schema.User], req *request.Request[schema.MutateUser]) {
+				// do something
+			}),
 			route.JSON[request.Void, schema.User]().Delete("/users/{id}", func(res *response.Response[schema.User], req *request.Request[request.Void]) {
 				// do something
 			}),
 			route.JSON[request.Void, schema.User]().Get("/users/{id}", func(res *response.Response[schema.User], req *request.Request[request.Void]) {
-				// do something
-			}),
-			route.JSON[schema.MutateUser, schema.User]().Patch("/users/{id}", func(res *response.Response[schema.User], req *request.Request[schema.MutateUser]) {
 				// do something
 			}),
 			route.JSON[request.Void, schema.Post]().Get("/posts", func(res *response.Response[schema.Post], req *request.Request[request.Void]) {
