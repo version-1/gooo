@@ -1,12 +1,12 @@
-package schemav2
+package schema
 
 import (
 	"fmt"
 	"path/filepath"
 
 	"github.com/version-1/gooo/pkg/core/generator"
-	"github.com/version-1/gooo/pkg/core/schemav2/openapi"
-	"github.com/version-1/gooo/pkg/core/schemav2/template"
+	"github.com/version-1/gooo/pkg/core/schema/openapi"
+	"github.com/version-1/gooo/pkg/core/schema/template"
 )
 
 type Generator struct {

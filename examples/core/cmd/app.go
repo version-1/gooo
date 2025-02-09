@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	schema "github.com/version-1/gooo/pkg/core/schemav2"
-	"github.com/version-1/gooo/pkg/core/schemav2/openapi"
+	schema "github.com/version-1/gooo/pkg/core/schema"
+	"github.com/version-1/gooo/pkg/core/schema/openapi"
 )
 
 func main() {

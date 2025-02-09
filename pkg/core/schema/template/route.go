@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/version-1/gooo/pkg/core/schemav2/openapi"
+	"github.com/version-1/gooo/pkg/core/schema/openapi"
 	"github.com/version-1/gooo/pkg/toolkit/errors"
 )
 
