@@ -6,8 +6,8 @@ import (
 
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 	"github.com/version-1/gooo/pkg/command/migration/reader"
-	"github.com/version-1/gooo/pkg/db"
-	"github.com/version-1/gooo/pkg/logger"
+	"github.com/version-1/gooo/pkg/datasource/db"
+	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 
 type Base struct {
@@ -36,6 +36,10 @@ func (r *Base) SetLogger(l logger.Logger) {
 
 func (r *Base) SetElements(elements Elements) {
 	r.elements = elements
+}
+
+func (r Base) Elements() Elements {
+	return r.elements
 }
 
 type Migration interface {

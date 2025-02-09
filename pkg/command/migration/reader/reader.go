@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/version-1/gooo/pkg/command/migration/constants"
-	"github.com/version-1/gooo/pkg/db"
+	"github.com/version-1/gooo/pkg/datasource/db"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -32,7 +32,7 @@ type Column struct {
 	Name       string  `yaml:"name" json:"name"`
 	Type       string  `yaml:"type" json:"type"`
 	Default    *string `yaml:"default" json:"default"`
-	Null       *bool   `yaml:"null" json:"null"`
+	AllowNull  *bool   `yaml:"allow_null" json:"allow_null"`
 	PrimaryKey *bool   `yaml:"primary_key" json:"primary_key"`
 }
 
@@ -92,10 +92,10 @@ func (r *SchemaReader) Read(ctx context.Context) error {
 
 			if isNullable == "YES" {
 				null := true
-				c.Null = &null
+				c.AllowNull = &null
 			} else if isNullable == "NO" {
 				null := false
-				c.Null = &null
+				c.AllowNull = &null
 			}
 
 			t.Columns = append(t.Columns, c)

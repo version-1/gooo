@@ -7,7 +7,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/version-1/gooo/pkg/logger"
+	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 
 type SeedExecutor struct {
