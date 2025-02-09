@@ -12,9 +12,9 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 	"github.com/version-1/gooo/pkg/command/migration/runner"
-	"github.com/version-1/gooo/pkg/db"
-	goooerrors "github.com/version-1/gooo/pkg/errors"
-	"github.com/version-1/gooo/pkg/logger"
+	"github.com/version-1/gooo/pkg/core/db"
+	goooerrors "github.com/version-1/gooo/pkg/toolkit/errors"
+	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 
 var _ Runner = (*runner.Yaml)(nil)

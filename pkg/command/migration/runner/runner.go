@@ -6,8 +6,8 @@ import (
 
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 	"github.com/version-1/gooo/pkg/command/migration/reader"
-	"github.com/version-1/gooo/pkg/db"
-	"github.com/version-1/gooo/pkg/logger"
+	"github.com/version-1/gooo/pkg/core/db"
+	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 
 type Base struct {

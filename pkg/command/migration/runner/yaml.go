@@ -7,7 +7,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/version-1/gooo/pkg/command/migration/adapter/yaml"
-	"github.com/version-1/gooo/pkg/db"
+	"github.com/version-1/gooo/pkg/core/db"
 )
 
 type Yaml struct {

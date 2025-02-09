@@ -6,7 +6,7 @@ import (
 
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 	"github.com/version-1/gooo/pkg/command/migration/helper"
-	"github.com/version-1/gooo/pkg/db"
+	"github.com/version-1/gooo/pkg/core/db"
 )
 
 type YamlElement interface {

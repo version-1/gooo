@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	goooerrors "github.com/version-1/gooo/pkg/errors"
+	goooerrors "github.com/version-1/gooo/pkg/toolkit/errors"
 
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 )
