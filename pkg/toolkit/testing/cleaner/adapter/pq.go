@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lib/pq"
-	"github.com/version-1/gooo/pkg/db"
+	"github.com/version-1/gooo/pkg/datasource/db"
 )
 
 var excluded = pq.Array([]string{"schema_migrations"})

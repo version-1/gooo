@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
-
-	"github.com/version-1/gooo/pkg/core/request"
 )
 
 func TestMiddleware(t *testing.T) {
@@ -16,7 +14,7 @@ func TestMiddleware(t *testing.T) {
 	mw.Append(Middleware{
 		Name: "mw1",
 		If:   Always,
-		Do: func(w http.ResponseWriter, r *request.Request) bool {
+		Do: func(w http.ResponseWriter, r *http.Request) bool {
 			output = append(output, "mw1")
 			return true
 		},
@@ -25,7 +23,7 @@ func TestMiddleware(t *testing.T) {
 	mw.Append(Middleware{
 		Name: "mw2",
 		If:   Always,
-		Do: func(w http.ResponseWriter, r *request.Request) bool {
+		Do: func(w http.ResponseWriter, r *http.Request) bool {
 			output = append(output, "mw2")
 			return true
 		},
@@ -34,7 +32,7 @@ func TestMiddleware(t *testing.T) {
 	mw.Append(Middleware{
 		Name: "mw3",
 		If:   Always,
-		Do: func(w http.ResponseWriter, r *request.Request) bool {
+		Do: func(w http.ResponseWriter, r *http.Request) bool {
 			output = append(output, "mw3")
 			return true
 		},
@@ -43,7 +41,7 @@ func TestMiddleware(t *testing.T) {
 	mw.Prepend(Middleware{
 		Name: "mw5",
 		If:   Always,
-		Do: func(w http.ResponseWriter, r *request.Request) bool {
+		Do: func(w http.ResponseWriter, r *http.Request) bool {
 			output = append(output, "mw5")
 			return true
 		},

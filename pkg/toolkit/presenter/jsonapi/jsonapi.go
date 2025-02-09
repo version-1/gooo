@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	goooerrors "github.com/version-1/gooo/pkg/errors"
-	"github.com/version-1/gooo/pkg/logger"
+	goooerrors "github.com/version-1/gooo/pkg/toolkit/errors"
+	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 
 type Resourcer interface {

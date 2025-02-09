@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/version-1/gooo/examples/core/internal/schema"
+	"github.com/version-1/gooo/examples/core/generated/internal/schema"
 	"github.com/version-1/gooo/pkg/core/api/app"
 	"github.com/version-1/gooo/pkg/core/api/request"
 	"github.com/version-1/gooo/pkg/core/api/response"

@@ -1,20 +1,19 @@
 package auth
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
-	"github.com/version-1/gooo/pkg/controller"
-	"github.com/version-1/gooo/pkg/http/request"
-	"github.com/version-1/gooo/pkg/http/response"
+	"github.com/version-1/gooo/pkg/core/api/middleware"
 )
 
 type JWTAuth[T any] struct {
-	If             func(r *request.Request) bool
-	OnAuthorized   func(r *request.Request, sub string) error
+	If             func(r *http.Request) bool
+	OnAuthorized   func(r *http.Request, sub string) error
 	PrivateKey     *string
 	TokenExpiresIn time.Duration
 	Issuer         string
@@ -28,7 +27,7 @@ func (a JWTAuth[T]) GetPrivateKey() string {
 	return *a.PrivateKey
 }
 
-func (a JWTAuth[T]) Sign(r *request.Request) (string, error) {
+func (a JWTAuth[T]) Sign(r *http.Request) (string, error) {
 	claims := &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(a.TokenExpiresIn)),
 		Issuer:    a.Issuer,
@@ -38,10 +37,10 @@ func (a JWTAuth[T]) Sign(r *request.Request) (string, error) {
 	return token.SignedString(a.GetPrivateKey())
 }
 
-func (a JWTAuth[T]) Guard() controller.Middleware {
-	return controller.Middleware{
+func (a JWTAuth[T]) Guard() middleware.Middleware {
+	return middleware.Middleware{
 		If: a.If,
-		Do: func(w *response.Response, r *request.Request) bool {
+		Do: func(w http.ResponseWriter, r *http.Request) bool {
 			str := r.Header.Get("Authorization")
 			token := strings.TrimSpace(strings.ReplaceAll(str, "Bearer ", ""))
 			t, err := jwt.ParseWithClaims(token, &jwt.RegisteredClaims{}, func(t *jwt.Token) (any, error) {
@@ -59,12 +58,11 @@ func (a JWTAuth[T]) Guard() controller.Middleware {
 			}
 
 			if expired {
-				w.JSON(map[string]string{
+				renderJSON(w, map[string]string{
 					"code":   "auth:token_expired",
 					"error":  "Unauthorized",
 					"detail": err.Error(),
-				})
-				w.WriteHeader(http.StatusUnauthorized)
+				}, http.StatusUnauthorized)
 				return false
 			}
 
@@ -84,13 +82,19 @@ func (a JWTAuth[T]) Guard() controller.Middleware {
 	}
 }
 
-func reportError(w *response.Response, e error) {
-	w.JSON(
-		map[string]string{
-			"code":   "unauthorized",
-			"error":  "Unauthorized",
-			"detail": e.Error(),
-		},
-	)
+func renderJSON(w http.ResponseWriter, payload map[string]string, status int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(payload)
+}
+
+func reportError(w http.ResponseWriter, e error) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
+	payload := map[string]string{
+		"code":   "unauthorized",
+		"error":  "Unauthorized",
+		"detail": e.Error(),
+	}
+	json.NewEncoder(w).Encode(payload)
 }

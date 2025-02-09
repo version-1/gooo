@@ -3,8 +3,8 @@ package cleaner
 import (
 	"context"
 
-	"github.com/version-1/gooo/pkg/db"
-	"github.com/version-1/gooo/pkg/testing/cleaner/adapter"
+	"github.com/version-1/gooo/pkg/datasource/db"
+	"github.com/version-1/gooo/pkg/toolkit/testing/cleaner/adapter"
 )
 
 var _ CleanAdapter = (*adapter.Pq)(nil)

@@ -13,7 +13,7 @@ func main() {
 		panic(err)
 	}
 
-	g := schema.NewGenerator(s, "./examples/core/generated", "github.com/version-1/gooo/examples/core")
+	g := schema.NewGenerator(s, "./examples/core/generated", "github.com/version-1/gooo/examples/core/generated")
 
 	if err := g.Generate(); err != nil {
 		fmt.Printf("Error: %+v\n", err)

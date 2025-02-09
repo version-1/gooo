@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	goootesting "github.com/version-1/gooo/pkg/testing"
+	goootesting "github.com/version-1/gooo/pkg/toolkit/testing"
 )
 
 func TestErrors(t *testing.T) {
