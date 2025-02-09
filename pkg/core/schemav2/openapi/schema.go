@@ -1,4 +1,4 @@
-package schemav2
+package openapi
 
 import (
 	"os"
@@ -20,14 +20,19 @@ func New(path string) (*RootSchema, error) {
 }
 
 type RequestBody struct {
-	Description string                 `json:"description"`
-	Content     map[string]interface{} `json:"content"`
+	Description string               `json:"description"`
+	Content     map[string]MediaType `json:"content"`
 }
+
 type Responses map[string]Response
 
 type Response struct {
-	Description string                 `json:"description"`
-	Content     map[string]interface{} `json:"content"`
+	Description string               `json:"description"`
+	Content     map[string]MediaType `json:"content"`
+}
+
+type MediaType struct {
+	Schema Schema `json:"schema"`
 }
 
 type Content struct {
@@ -47,15 +52,16 @@ type Operation struct {
 	Description string      `json:"description"`
 	OperationId string      `json:"operationId"`
 	Parameters  []Parameter `json:"parameters"`
-	RequestBody RequestBody `json:"requestBody"`
+	RequestBody RequestBody `json:"requestBody" yaml:"requestBody"`
 	Responses   Responses   `json:"responses"`
 }
 
 type PathItem struct {
-	Get    Operation `json:"get"`
-	Post   Operation `json:"post"`
-	Put    Operation `json:"put"`
-	Delete Operation `json:"delete"`
+	Get    *Operation `json:"get"`
+	Post   *Operation `json:"post"`
+	Put    *Operation `json:"put"`
+	Patch  *Operation `json:"patch"`
+	Delete *Operation `json:"delete"`
 }
 
 type Info struct {
@@ -76,15 +82,21 @@ type Components struct {
 type Schema struct {
 	Type       string              `json:"type"`
 	Properties map[string]Property `json:"properties"`
-	Ref        string              `json:"$ref"`
+	Ref        string              `json:"$ref" yaml:"$ref"`
+	Items      Property            `json:"items"`
 }
 
 type Property struct {
-	Type   string `json:"type"`
-	Format string `json:"format"`
-	Sample string `json:"sample"`
+	Ref        string              `json:"$ref" yaml:"$ref"`
+	Type       string              `json:"type"`
+	Properties map[string]Property `json:"properties"`
+	Items      *Property           `json:"items"`
+	Format     string              `json:"format"`
+	Sample     string              `json:"sample"`
+	Required   bool                `json:"required"`
 }
 
+// version. 3.0.x
 type RootSchema struct {
 	OpenAPI    string              `json:"openapi"`
 	Info       Info                `json:"info"`

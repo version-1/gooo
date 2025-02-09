@@ -1,5 +1,12 @@
 package main
 
+// This is a generated file. DO NOT EDIT manually.
+import (
+  {{ range .Dependencies }}
+  "{{ . }}"
+  {{ end }}
+)
+
 func main() {
   cfg := &app.Config{}
   cfg.SetLogger(logger.DefaultLogger)

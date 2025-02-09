@@ -1,26 +1,34 @@
 package schemav2
 
 import (
-	"go/format"
+	"fmt"
+	"path/filepath"
 
 	"github.com/version-1/gooo/pkg/core/generator"
-	"golang.org/x/tools/imports"
+	"github.com/version-1/gooo/pkg/core/schemav2/openapi"
+	"github.com/version-1/gooo/pkg/core/schemav2/template"
 )
 
 type Generator struct {
-	r       *RootSchema
+	r       *openapi.RootSchema
 	outputs []generator.Template
+	baseURL string
 	OutDir  string
 }
 
-func NewGenerator(r *RootSchema, outDir string) *Generator {
-	return &Generator{r: r, OutDir: outDir}
+func NewGenerator(r *openapi.RootSchema, outDir string, baseURL string) *Generator {
+	return &Generator{r: r, OutDir: outDir, baseURL: baseURL}
 }
 
 func (g *Generator) Generate() error {
-	g.outputs = append(g.outputs, Main{
-		Routes: "// ここにルーティングが入ります",
-	})
+	schemaFile := template.SchemaFile{Schema: g.r, PackageName: "schema"}
+	mainFile := template.Main{Schema: g.r}
+
+	mainFile.Dependencies = []string{fmt.Sprintf("%s/%s", g.baseURL, filepath.Dir(schemaFile.Filename()))}
+
+	g.outputs = append(g.outputs, schemaFile)
+	g.outputs = append(g.outputs, mainFile)
+
 	for _, tmpl := range g.outputs {
 		g := generator.Generator{Dir: g.OutDir, Template: tmpl}
 		if err := g.Run(); err != nil {
@@ -29,18 +37,4 @@ func (g *Generator) Generate() error {
 	}
 
 	return nil
-}
-
-func pretify(filename, s string) ([]byte, error) {
-	formatted, err := format.Source([]byte(s))
-	if err != nil {
-		return []byte{}, err
-	}
-
-	processed, err := imports.Process(filename, formatted, nil)
-	if err != nil {
-		return formatted, err
-	}
-
-	return processed, nil
 }

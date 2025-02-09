@@ -1,0 +1,10 @@
+package {{ .PackageName }}
+
+import (
+  {{ range .Dependencies }}
+  "{{ . }}"
+  {{ end }}
+)
+// This is a generated file. DO NOT EDIT manually.
+
+{{ .Content }}

@@ -33,14 +33,22 @@ func (g Generator) Run() error {
 		return err
 	}
 
+	return penetrateAndCreateFile(filename, s)
+}
+
+func penetrateAndCreateFile(filename string, content string) error {
+	dir := filepath.Dir(filename)
+	err := os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
 	f, err := os.Create(filename)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
 	defer f.Close()
-
-	f.WriteString(s)
-
-	return nil
+	_, err = f.WriteString(content)
+	return err
 }

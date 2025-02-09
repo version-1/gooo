@@ -1,16 +1,21 @@
-package schemav2
+package template
 
 import (
 	"bytes"
 	"embed"
 	"text/template"
+
+	"github.com/version-1/gooo/pkg/core/schemav2/openapi"
+	"github.com/version-1/gooo/pkg/toolkit/errors"
 )
 
 //go:embed components/*.go.tmpl
 var tmpl embed.FS
 
 type Main struct {
-	Routes string
+	Schema       *openapi.RootSchema
+	Dependencies []string
+	Routes       string
 }
 
 func (m Main) Filename() string {
@@ -18,6 +23,13 @@ func (m Main) Filename() string {
 }
 
 func (m Main) Render() (string, error) {
+	routes, err := renderRoutes(extractRoutes(m.Schema))
+	if err != nil {
+		return "", err
+	}
+
+	m.Routes = routes
+
 	tmpl := template.Must(template.New("entry").ParseFS(tmpl, "components/entry.go.tmpl"))
 	var b bytes.Buffer
 	if err := tmpl.ExecuteTemplate(&b, "entry.go.tmpl", m); err != nil {
@@ -25,5 +37,8 @@ func (m Main) Render() (string, error) {
 	}
 
 	res, err := pretify(m.Filename(), b.String())
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
 	return string(res), err
 }
