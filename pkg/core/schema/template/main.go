@@ -5,7 +5,7 @@ import (
 	"embed"
 	"text/template"
 
-	"github.com/version-1/gooo/pkg/core/schema/openapi"
+	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
 	"github.com/version-1/gooo/pkg/toolkit/errors"
 )
 
@@ -13,7 +13,7 @@ import (
 var tmpl embed.FS
 
 type Main struct {
-	Schema       *openapi.RootSchema
+	Schema       *v3_0_0.RootSchema
 	Dependencies []string
 	Routes       string
 }

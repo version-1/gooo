@@ -5,18 +5,18 @@ import (
 	"path/filepath"
 
 	"github.com/version-1/gooo/pkg/core/generator"
-	"github.com/version-1/gooo/pkg/core/schema/openapi"
+	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
 	"github.com/version-1/gooo/pkg/core/schema/template"
 )
 
 type Generator struct {
-	r       *openapi.RootSchema
+	r       *v3_0_0.RootSchema
 	outputs []generator.Template
 	baseURL string
 	OutDir  string
 }
 
-func NewGenerator(r *openapi.RootSchema, outDir string, baseURL string) *Generator {
+func NewGenerator(r *v3_0_0.RootSchema, outDir string, baseURL string) *Generator {
 	return &Generator{r: r, OutDir: outDir, baseURL: baseURL}
 }
 

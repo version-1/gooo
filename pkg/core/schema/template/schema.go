@@ -6,13 +6,14 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/version-1/gooo/pkg/core/schema/openapi"
+	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
+	"github.com/version-1/gooo/pkg/core/schema/openapi/yaml"
 	"github.com/version-1/gooo/pkg/core/schema/template/partial"
 	"github.com/version-1/gooo/pkg/toolkit/errors"
 )
 
 type SchemaFile struct {
-	Schema      *openapi.RootSchema
+	Schema      *v3_0_0.RootSchema
 	PackageName string
 	Content     string
 }
@@ -21,18 +22,22 @@ func (s SchemaFile) Filename() string {
 	return "internal/schema/schema"
 }
 
-// FIXME: yaml.v3 doesnt guarantee the order of the fields and schemas
 func (s SchemaFile) Render() (string, error) {
 	schemas := []Schema{}
-	for name, schema := range s.Schema.Components.Schemas {
-		fields, err := extractFields(schema.Properties, "")
+	err := s.Schema.Components.Schemas.Each(func(key string, s v3_0_0.Schema) error {
+		fields, err := extractFields(s.Properties, "")
 		if err != nil {
-			return "", err
+			return err
 		}
+
 		schemas = append(schemas, Schema{
 			Fields:   fields,
-			TypeName: name,
+			TypeName: key,
 		})
+		return nil
+	})
+	if err != nil {
+		return "", err
 	}
 
 	content, err := renderSchemas(schemas)
@@ -53,7 +58,6 @@ func (s SchemaFile) Render() (string, error) {
 
 	res, err := pretify(s.Filename(), b.String())
 	if err != nil {
-		fmt.Println("pretify content: ", b.String())
 		return "", errors.Wrap(err)
 	}
 	return string(res), err
@@ -76,9 +80,10 @@ func renderSchemas(schemas []Schema) (string, error) {
 	return b.String(), nil
 }
 
-func extractFields(props map[string]openapi.Property, prefix string) ([]string, error) {
+func extractFields(props yaml.OrderedMap[v3_0_0.Property], prefix string) ([]string, error) {
 	var fields []string
-	for k, v := range props {
+	for i := 0; i < props.Len(); i++ {
+		k, v := props.Index(i)
 		key := formatKeyname(k)
 		if v.Ref != "" {
 			fields = append(fields, key+" "+pointer(schemaTypeName(v.Ref)))
@@ -94,7 +99,7 @@ func extractFields(props map[string]openapi.Property, prefix string) ([]string, 
 	return fields, nil
 }
 
-func extractFieldType(prop openapi.Property, prefix string) (string, error) {
+func extractFieldType(prop v3_0_0.Property, prefix string) (string, error) {
 	if prop.Ref != "" {
 		return prefix + pointer(schemaTypeName(prop.Ref)), nil
 	}
@@ -127,6 +132,10 @@ func pointer(typeName string) string {
 func formatKeyname(key string) string {
 	if key == "id" {
 		return strings.ToUpper(key)
+	}
+
+	if strings.HasSuffix(key, "Id") {
+		return key[0:len(key)-2] + "ID"
 	}
 
 	return Capitalize(key)

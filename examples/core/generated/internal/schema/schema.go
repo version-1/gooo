@@ -8,12 +8,12 @@ type Error struct {
 }
 
 type User struct {
+	ID       int
 	Username string
 	Obj      struct {
 		Hoge string
 		Fuga string
 	}
-	ID int
 }
 
 type MutateUser struct {
@@ -21,10 +21,10 @@ type MutateUser struct {
 }
 
 type Post struct {
-	UserId  int
+	ID      int
+	userID  int
 	Title   string
 	Content string
-	ID      int
 }
 
 type MutatePost struct {

@@ -39,10 +39,13 @@ func RegisterRoutes(srv *app.App) {
 	routes := route.GroupHandler{
 		Path: "/users",
 		Handlers: []route.HandlerInterface{
+			route.JSON[schema.MutateUser, schema.User]().Post("/users", func(res *response.Response[schema.User], req *request.Request[schema.MutateUser]) {
+				// do something
+			}),
 			route.JSON[request.Void, schema.User]().Get("/users", func(res *response.Response[schema.User], req *request.Request[request.Void]) {
 				// do something
 			}),
-			route.JSON[schema.MutateUser, schema.User]().Post("/users", func(res *response.Response[schema.User], req *request.Request[schema.MutateUser]) {
+			route.JSON[request.Void, schema.User]().Get("/users/{id}", func(res *response.Response[schema.User], req *request.Request[request.Void]) {
 				// do something
 			}),
 			route.JSON[schema.MutateUser, schema.User]().Patch("/users/{id}", func(res *response.Response[schema.User], req *request.Request[schema.MutateUser]) {
@@ -51,22 +54,19 @@ func RegisterRoutes(srv *app.App) {
 			route.JSON[request.Void, schema.User]().Delete("/users/{id}", func(res *response.Response[schema.User], req *request.Request[request.Void]) {
 				// do something
 			}),
-			route.JSON[request.Void, schema.User]().Get("/users/{id}", func(res *response.Response[schema.User], req *request.Request[request.Void]) {
-				// do something
-			}),
 			route.JSON[request.Void, schema.Post]().Get("/posts", func(res *response.Response[schema.Post], req *request.Request[request.Void]) {
 				// do something
 			}),
 			route.JSON[schema.MutatePost, schema.Post]().Post("/posts", func(res *response.Response[schema.Post], req *request.Request[schema.MutatePost]) {
 				// do something
 			}),
-			route.JSON[request.Void, schema.Post]().Get("/posts/{id}", func(res *response.Response[schema.Post], req *request.Request[request.Void]) {
-				// do something
-			}),
 			route.JSON[schema.MutatePost, schema.Post]().Patch("/posts/{id}", func(res *response.Response[schema.Post], req *request.Request[schema.MutatePost]) {
 				// do something
 			}),
 			route.JSON[request.Void, schema.Post]().Delete("/posts/{id}", func(res *response.Response[schema.Post], req *request.Request[request.Void]) {
+				// do something
+			}),
+			route.JSON[request.Void, schema.Post]().Get("/posts/{id}", func(res *response.Response[schema.Post], req *request.Request[request.Void]) {
 				// do something
 			}),
 		},

@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	schema "github.com/version-1/gooo/pkg/core/schema"
-	"github.com/version-1/gooo/pkg/core/schema/openapi"
+	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
 )
 
 func main() {
-	s, err := openapi.New("./examples/bare/internal/swagger/swagger.yml")
+	s, err := v3_0_0.New("./examples/bare/internal/swagger/swagger.yml")
 	if err != nil {
 		panic(err)
 	}

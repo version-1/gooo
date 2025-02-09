@@ -6,7 +6,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/version-1/gooo/pkg/core/schema/openapi"
+	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
+	"github.com/version-1/gooo/pkg/core/schema/openapi/yaml"
 	"github.com/version-1/gooo/pkg/toolkit/errors"
 )
 
@@ -28,10 +29,10 @@ func renderRoutes(routes []Route) (string, error) {
 	return b.String(), nil
 }
 
-func extractRoutes(r *openapi.RootSchema) []Route {
+func extractRoutes(r *v3_0_0.RootSchema) []Route {
 	routes := []Route{}
-	for path, pathItem := range r.Paths {
-		m := map[string]*openapi.Operation{
+	r.Paths.Each(func(path string, pathItem v3_0_0.PathItem) error {
+		m := map[string]*v3_0_0.Operation{
 			"Get":    pathItem.Get,
 			"Post":   pathItem.Post,
 			"Patch":  pathItem.Patch,
@@ -66,13 +67,15 @@ func extractRoutes(r *openapi.RootSchema) []Route {
 				routes = append(routes, route)
 			}
 		}
-	}
+
+		return nil
+	})
 
 	return routes
 }
 
-func detectInputType(op *openapi.Operation, contentType string) string {
-	schema := op.RequestBody.Content[contentType].Schema
+func detectInputType(op *v3_0_0.Operation, contentType string) string {
+	schema := op.RequestBody.Content.Get(contentType).Schema
 	ref := ""
 	if schema.Ref != "" {
 		ref = schema.Ref
@@ -86,8 +89,9 @@ func detectInputType(op *openapi.Operation, contentType string) string {
 	return schemaName
 }
 
-func detectOutputType(op *openapi.Operation, statusCode int, contentType string) string {
-	schema := op.Responses[strconv.Itoa(statusCode)].Content[contentType].Schema
+func detectOutputType(op *v3_0_0.Operation, statusCode int, contentType string) string {
+	responses := yaml.OrderedMap[v3_0_0.Response](op.Responses)
+	schema := responses.Get(strconv.Itoa(statusCode)).Content.Get(contentType).Schema
 	ref := ""
 	if schema.Ref != "" {
 		ref = schema.Ref
