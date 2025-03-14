@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	goooerrors "github.com/version-1/gooo/pkg/toolkit/errors"
+	goooerrors "github.com/gooolib/errors"
 	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 

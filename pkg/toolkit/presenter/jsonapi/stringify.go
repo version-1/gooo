@@ -3,7 +3,7 @@ package jsonapi
 import (
 	"encoding/json"
 
-	goooerrors "github.com/version-1/gooo/pkg/toolkit/errors"
+	goooerrors "github.com/gooolib/errors"
 )
 
 func Stringify(v any) string {

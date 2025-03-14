@@ -13,7 +13,7 @@ import (
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 	"github.com/version-1/gooo/pkg/command/migration/runner"
 	"github.com/version-1/gooo/pkg/datasource/db"
-	goooerrors "github.com/version-1/gooo/pkg/toolkit/errors"
+	goooerrors "github.com/gooolib/errors"
 	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 

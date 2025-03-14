@@ -8,7 +8,7 @@ import (
 
 	"github.com/version-1/gooo/pkg/command/migration/constants"
 	"github.com/version-1/gooo/pkg/datasource/db"
-	"github.com/version-1/gooo/pkg/toolkit/errors"
+	"github.com/gooolib/errors"
 	yaml "gopkg.in/yaml.v3"
 )
 

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/version-1/gooo/pkg/core/api/middleware"
-	"github.com/version-1/gooo/pkg/toolkit/errors"
+	"github.com/gooolib/errors"
 	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 

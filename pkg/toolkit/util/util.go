@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/version-1/gooo/pkg/toolkit/errors"
+	"github.com/gooolib/errors"
 )
 
 func LookupGomodDirPath() (string, error) {

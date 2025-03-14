@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/version-1/gooo/pkg/toolkit/errors"
+	"github.com/gooolib/errors"
 	"github.com/version-1/gooo/pkg/toolkit/util"
 )
 

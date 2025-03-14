@@ -8,7 +8,7 @@ import (
 
 	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
 	"github.com/version-1/gooo/pkg/core/schema/openapi/yaml"
-	"github.com/version-1/gooo/pkg/toolkit/errors"
+	"github.com/gooolib/errors"
 )
 
 type Route struct {
