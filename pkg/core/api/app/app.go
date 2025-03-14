@@ -7,7 +7,7 @@ import (
 
 	"github.com/version-1/gooo/pkg/core/api/middleware"
 	"github.com/gooolib/errors"
-	"github.com/version-1/gooo/pkg/toolkit/logger"
+	"github.com/gooolib/logger"
 )
 
 type App struct {

@@ -11,7 +11,7 @@ import (
 	"github.com/version-1/gooo/pkg/core/api/request"
 	"github.com/version-1/gooo/pkg/core/api/response"
 	"github.com/version-1/gooo/pkg/core/api/route"
-	"github.com/version-1/gooo/pkg/toolkit/logger"
+	"github.com/gooolib/logger"
 	"github.com/version-1/gooo/pkg/toolkit/middleware"
 )
 

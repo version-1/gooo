@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/version-1/gooo/pkg/toolkit/logger"
+	"github.com/gooolib/logger"
 )
 
 type Config struct {

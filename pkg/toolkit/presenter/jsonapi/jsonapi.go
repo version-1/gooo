@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	goooerrors "github.com/gooolib/errors"
-	"github.com/version-1/gooo/pkg/toolkit/logger"
+	"github.com/gooolib/logger"
 )
 
 type Resourcer interface {

@@ -6,8 +6,8 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"github.com/gooolib/logger"
 	"github.com/jmoiron/sqlx"
-	"github.com/version-1/gooo/pkg/toolkit/logger"
 )
 
 type SeedExecutor struct {
@@ -15,10 +15,10 @@ type SeedExecutor struct {
 }
 
 type Logger interface {
+	Debugf(format string, args ...any)
 	Infof(format string, args ...any)
 	Warnf(format string, args ...any)
 	Errorf(format string, args ...any)
-	Fatalf(format string, args ...any)
 }
 
 type Config interface {
@@ -66,7 +66,8 @@ func (s SeedExecutor) RunWith(tx *sqlx.Tx, name ...string) {
 func (s SeedExecutor) Run(name ...string) {
 	db, err := sqlx.Connect("postgres", s.cfg.Connstr())
 	if err != nil {
-		s.logger().Fatalf(err.Error())
+		s.logger().Errorf(err.Error())
+		panic(err)
 	}
 	defer db.Close()
 

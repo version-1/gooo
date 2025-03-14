@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/version-1/gooo/pkg/core/api/middleware"
-	"github.com/version-1/gooo/pkg/toolkit/logger"
+	"github.com/gooolib/logger"
 )
 
 func RequestLogger(logger logger.Logger) middleware.Middleware {

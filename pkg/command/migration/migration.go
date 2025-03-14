@@ -14,7 +14,7 @@ import (
 	"github.com/version-1/gooo/pkg/command/migration/runner"
 	"github.com/version-1/gooo/pkg/datasource/db"
 	goooerrors "github.com/gooolib/errors"
-	"github.com/version-1/gooo/pkg/toolkit/logger"
+	"github.com/gooolib/logger"
 )
 
 var _ Runner = (*runner.Yaml)(nil)

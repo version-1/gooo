@@ -6,10 +6,10 @@ github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17w
 github.com/golang-jwt/jwt/v5 v5.2.1/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/gooolib/errors v0.0.0-20250314203810-d2ce146c3a5b h1:omD2l8xSlfbK0QsXu/XBoVJ/uZdBE/CzonTO0oj1YVI=
-github.com/gooolib/errors v0.0.0-20250314203810-d2ce146c3a5b/go.mod h1:KgSNO9qMkI+sK5ebzTFDwLB7S1rc/AkVyjlvR4mnHrE=
 github.com/gooolib/errors v0.0.0-20250314205124-0769f4da9980 h1:a3xmBXwQwrWNtNjRPjScTx0n1bbRIuPguq2Ji/wSJEE=
 github.com/gooolib/errors v0.0.0-20250314205124-0769f4da9980/go.mod h1:KgSNO9qMkI+sK5ebzTFDwLB7S1rc/AkVyjlvR4mnHrE=
+github.com/gooolib/logger v0.0.0-20250314215253-c6a05722b917 h1:eqjUwYerkUEzXvF9n7Fg0fwQiIaheVagkkqGalikkx8=
+github.com/gooolib/logger v0.0.0-20250314215253-c6a05722b917/go.mod h1:ZJcIfwYA74i00FtxZ+aeQW0iWilfdhCnXLMhC8klGQI=
 github.com/gooolib/testing v0.0.0-20250314201531-08ff6e6b2f90 h1:of8hfCY7cwDtlzpUN8NzO+tN3GL6D8BibzkZOBNOI3w=
 github.com/gooolib/testing v0.0.0-20250314201531-08ff6e6b2f90/go.mod h1:jPlQfVHD4u0YRBx4DCufwvriNX8ykr+i4zqPMadgkAs=
 github.com/jmoiron/sqlx v1.4.0 h1:1PLqN7S1UYp5t4SrVVnt4nUVNemrDAtxlulVe+Qgm3o=

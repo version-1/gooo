@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/version-1/gooo/pkg/core/api/context"
-	"github.com/version-1/gooo/pkg/toolkit/logger"
+	"github.com/gooolib/logger"
 )
 
 type Void struct{}
