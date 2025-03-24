@@ -6,10 +6,49 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gooolib/errors"
 	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
 	"github.com/version-1/gooo/pkg/core/schema/openapi/yaml"
-	"github.com/gooolib/errors"
 )
+
+type RoutesFile struct {
+	Schema       *v3_0_0.RootSchema
+	PackageName  string
+	Dependencies []string
+}
+
+func (r RoutesFile) Filename() string {
+	return "internal/routes/routes"
+}
+
+func (r RoutesFile) Render() (string, error) {
+	routes := extractRoutes(r.Schema)
+	s, err := renderRoutes(routes)
+	if err != nil {
+		return "", err
+	}
+
+	p := struct {
+		Routes       string
+		Dependencies []string
+	}{
+		Routes:       s,
+		Dependencies: r.Dependencies,
+	}
+
+	var b bytes.Buffer
+	tmpl := template.Must(template.New("routes").ParseFS(tmpl, "components/routes.go.tmpl"))
+	if err := tmpl.ExecuteTemplate(&b, "routes.go.tmpl", p); err != nil {
+		return "", errors.Wrap(err)
+	}
+
+	res, err := pretify(r.Filename(), b.String())
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+
+	return string(res), nil
+}
 
 type Route struct {
 	InputType  string
