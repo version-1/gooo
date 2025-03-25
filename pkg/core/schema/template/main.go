@@ -5,8 +5,8 @@ import (
 	"embed"
 	"text/template"
 
-	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
 	"github.com/gooolib/errors"
+	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
 )
 
 //go:embed components/*.go.tmpl
@@ -18,7 +18,7 @@ type Main struct {
 }
 
 func (m Main) Filename() string {
-	return "main"
+	return "cmd/main"
 }
 
 func (m Main) Render() (string, error) {

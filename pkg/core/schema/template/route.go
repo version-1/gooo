@@ -2,19 +2,62 @@ package template
 
 import (
 	"bytes"
-	"strconv"
-	"strings"
+	"fmt"
 	"text/template"
 
 	"github.com/gooolib/errors"
 	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
-	"github.com/version-1/gooo/pkg/core/schema/openapi/yaml"
+	"github.com/version-1/gooo/pkg/core/schema/template/route"
 )
+
+type RouteImplementsFile struct {
+	Schema       *v3_0_0.RootSchema
+	PackageName  string
+	Dependencies []string
+}
+
+func (r RouteImplementsFile) Filename() string {
+	return "internal/routes/routeimplments"
+}
+
+type RouteImplementsTemplateParams struct {
+	Functions string
+}
+
+func (r RouteImplementsFile) Render() (string, error) {
+	routes := extractRoutes(r.Schema)
+	implString, err := renderRouteImplements(routes)
+	if err != nil {
+		return "", err
+	}
+
+	p := CommonPlainTemplateParams{
+		Package:      r.PackageName,
+		Dependencies: r.Dependencies,
+		Content:      implString,
+	}
+
+	content, err := p.Render()
+
+	res, err := pretify(r.Filename(), content)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+
+	return string(res), nil
+}
 
 type RoutesFile struct {
 	Schema       *v3_0_0.RootSchema
 	PackageName  string
 	Dependencies []string
+}
+
+type RoutesTemplateParams struct {
+	Routes          string
+	RouteHandlers   string
+	RouteImplements string
+	Dependencies    []string
 }
 
 func (r RoutesFile) Filename() string {
@@ -23,17 +66,13 @@ func (r RoutesFile) Filename() string {
 
 func (r RoutesFile) Render() (string, error) {
 	routes := extractRoutes(r.Schema)
-	s, err := renderRoutes(routes)
-	if err != nil {
-		return "", err
-	}
+	handlersString, err := renderRouteHandlers(routes)
+	routeString := renderRoutes(routes)
 
-	p := struct {
-		Routes       string
-		Dependencies []string
-	}{
-		Routes:       s,
-		Dependencies: r.Dependencies,
+	p := RoutesTemplateParams{
+		Routes:        routeString,
+		RouteHandlers: handlersString,
+		Dependencies:  r.Dependencies,
 	}
 
 	var b bytes.Buffer
@@ -51,21 +90,67 @@ func (r RoutesFile) Render() (string, error) {
 }
 
 type Route struct {
+	Name       string
 	InputType  string
 	OutputType string
 	Method     string
 	Path       string
 }
 
-func renderRoutes(routes []Route) (string, error) {
+func renderRouteHandlers(routes []Route) (string, error) {
 	var b bytes.Buffer
 	for _, r := range routes {
-		tmpl := template.Must(template.New("route").ParseFS(tmpl, "components/route.go.tmpl"))
-		if err := tmpl.ExecuteTemplate(&b, "route.go.tmpl", r); err != nil {
+		tmpl := template.Must(template.New("route").ParseFS(tmpl, "components/routehandler.go.tmpl"))
+		p := struct {
+			FuncName   string
+			Path       string
+			InputType  string
+			OutputType string
+		}{
+			FuncName:   r.Name,
+			Path:       r.Path,
+			InputType:  r.InputType,
+			OutputType: r.OutputType,
+		}
+
+		if err := tmpl.ExecuteTemplate(&b, "routehandler.go.tmpl", p); err != nil {
 			return "", errors.Wrap(err)
 		}
 	}
+
 	return b.String(), nil
+}
+
+func renderRouteImplements(routes []Route) (string, error) {
+	var b bytes.Buffer
+	for _, r := range routes {
+		tmpl := template.Must(template.New("route").ParseFS(tmpl, "components/routeimpl.go.tmpl"))
+		p := struct {
+			FuncName   string
+			Path       string
+			InputType  string
+			OutputType string
+		}{
+			FuncName:   r.Name,
+			Path:       r.Path,
+			InputType:  r.InputType,
+			OutputType: r.OutputType,
+		}
+
+		if err := tmpl.ExecuteTemplate(&b, "routeimpl.go.tmpl", p); err != nil {
+			return "", errors.Wrap(err)
+		}
+	}
+
+	return b.String(), nil
+}
+
+func renderRoutes(routes []Route) string {
+	var b bytes.Buffer
+	for _, r := range routes {
+		b.WriteString(fmt.Sprintf("%sHandler(),\n", r.Name))
+	}
+	return b.String()
 }
 
 func extractRoutes(r *v3_0_0.RootSchema) []Route {
@@ -83,10 +168,12 @@ func extractRoutes(r *v3_0_0.RootSchema) []Route {
 				continue
 			}
 
+			routeName := route.ResolveRouteName(k, path, v)
 			if k == "Get" || k == "Delete" {
 				route := Route{
+					Name:       routeName,
 					InputType:  "request.Void",
-					OutputType: withSchemaPackageName(detectOutputType(v, 200, "application/json")),
+					OutputType: withSchemaPackageName(route.DetectOutputType(v, 200, "application/json")),
 					Method:     k,
 					Path:       path,
 				}
@@ -98,8 +185,9 @@ func extractRoutes(r *v3_0_0.RootSchema) []Route {
 					statusCode = 201
 				}
 				route := Route{
-					InputType:  withSchemaPackageName(detectInputType(v, "application/json")),
-					OutputType: withSchemaPackageName(detectOutputType(v, statusCode, "application/json")),
+					Name:       routeName,
+					InputType:  withSchemaPackageName(route.DetectInputType(v, "application/json")),
+					OutputType: withSchemaPackageName(route.DetectOutputType(v, statusCode, "application/json")),
 					Method:     k,
 					Path:       path,
 				}
@@ -111,35 +199,4 @@ func extractRoutes(r *v3_0_0.RootSchema) []Route {
 	})
 
 	return routes
-}
-
-func detectInputType(op *v3_0_0.Operation, contentType string) string {
-	schema := op.RequestBody.Content.Get(contentType).Schema
-	ref := ""
-	if schema.Ref != "" {
-		ref = schema.Ref
-	}
-
-	if schema.Items.Type == "array" && schema.Items.Ref != "" {
-		ref = schema.Items.Ref
-	}
-
-	schemaName := strings.Replace(ref, "#/components/schemas/", "", 1)
-	return schemaName
-}
-
-func detectOutputType(op *v3_0_0.Operation, statusCode int, contentType string) string {
-	responses := yaml.OrderedMap[v3_0_0.Response](op.Responses)
-	schema := responses.Get(strconv.Itoa(statusCode)).Content.Get(contentType).Schema
-	ref := ""
-	if schema.Ref != "" {
-		ref = schema.Ref
-	}
-
-	if schema.Type == "array" && schema.Items.Ref != "" {
-		ref = schema.Items.Ref
-	}
-
-	schemaName := strings.Replace(ref, "#/components/schemas/", "", 1)
-	return schemaName
 }

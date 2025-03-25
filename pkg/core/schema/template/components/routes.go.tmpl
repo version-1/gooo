@@ -7,9 +7,12 @@ import (
   {{ end }}
 )
 
+{{ .RouteHandlers }}
+
 func Routes() []route.HandlerInterface {
   routes := route.GroupHandler{
     Path: "/users",
+
     Handlers: []route.HandlerInterface{
       {{ .Routes }}
     },
