@@ -22,11 +22,24 @@ func NewGenerator(r *v3_0_0.RootSchema, outDir string, baseURL string) *Generato
 
 func (g *Generator) Generate() error {
 	schemaFile := template.SchemaFile{Schema: g.r, PackageName: "schema"}
+	routeImplementsFile := template.RouteImplementsFile{Schema: g.r, PackageName: "routes"}
+	routeImplementsFile.Dependencies = []string{
+		fmt.Sprintf("%s/%s", g.baseURL, filepath.Dir(schemaFile.Filename())),
+	}
+	routesFile := template.RoutesFile{Schema: g.r, PackageName: "routes"}
+	routesFile.Dependencies = []string{
+		fmt.Sprintf("%s/%s", g.baseURL, filepath.Dir(schemaFile.Filename())),
+	}
+
 	mainFile := template.Main{Schema: g.r}
 
-	mainFile.Dependencies = []string{fmt.Sprintf("%s/%s", g.baseURL, filepath.Dir(schemaFile.Filename()))}
+	mainFile.Dependencies = []string{
+		fmt.Sprintf("%s/%s", g.baseURL, filepath.Dir(routesFile.Filename())),
+	}
 
 	g.outputs = append(g.outputs, schemaFile)
+	g.outputs = append(g.outputs, routeImplementsFile)
+	g.outputs = append(g.outputs, routesFile)
 	g.outputs = append(g.outputs, mainFile)
 
 	for _, tmpl := range g.outputs {

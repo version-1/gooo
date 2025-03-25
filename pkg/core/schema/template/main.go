@@ -5,8 +5,8 @@ import (
 	"embed"
 	"text/template"
 
-	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
 	"github.com/gooolib/errors"
+	"github.com/version-1/gooo/pkg/core/schema/openapi/v3_0_0"
 )
 
 //go:embed components/*.go.tmpl
@@ -15,21 +15,13 @@ var tmpl embed.FS
 type Main struct {
 	Schema       *v3_0_0.RootSchema
 	Dependencies []string
-	Routes       string
 }
 
 func (m Main) Filename() string {
-	return "main"
+	return "cmd/main"
 }
 
 func (m Main) Render() (string, error) {
-	routes, err := renderRoutes(extractRoutes(m.Schema))
-	if err != nil {
-		return "", err
-	}
-
-	m.Routes = routes
-
 	tmpl := template.Must(template.New("entry").ParseFS(tmpl, "components/entry.go.tmpl"))
 	var b bytes.Buffer
 	if err := tmpl.ExecuteTemplate(&b, "entry.go.tmpl", m); err != nil {

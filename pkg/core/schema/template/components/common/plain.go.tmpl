@@ -1,0 +1,10 @@
+package {{ .Package }}
+
+{{ .HeadComments }}
+import (
+  {{ range .Dependencies }}
+    "{{ . }}"
+  {{ end }}
+)
+
+{{ .Content }}
