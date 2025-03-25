@@ -4,10 +4,14 @@ github.com/go-sql-driver/mysql v1.8.1 h1:LedoTUt/eveggdHS9qUFC1EFSa8bU2+1pZjSRpv
 github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
 github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17wHk=
 github.com/golang-jwt/jwt/v5 v5.2.1/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
-github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
-github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/gooolib/errors v0.0.0-20250314205124-0769f4da9980 h1:a3xmBXwQwrWNtNjRPjScTx0n1bbRIuPguq2Ji/wSJEE=
+github.com/gooolib/errors v0.0.0-20250314205124-0769f4da9980/go.mod h1:KgSNO9qMkI+sK5ebzTFDwLB7S1rc/AkVyjlvR4mnHrE=
+github.com/gooolib/logger v0.0.0-20250314215253-c6a05722b917 h1:eqjUwYerkUEzXvF9n7Fg0fwQiIaheVagkkqGalikkx8=
+github.com/gooolib/logger v0.0.0-20250314215253-c6a05722b917/go.mod h1:ZJcIfwYA74i00FtxZ+aeQW0iWilfdhCnXLMhC8klGQI=
+github.com/gooolib/testing v0.0.0-20250314201531-08ff6e6b2f90 h1:of8hfCY7cwDtlzpUN8NzO+tN3GL6D8BibzkZOBNOI3w=
+github.com/gooolib/testing v0.0.0-20250314201531-08ff6e6b2f90/go.mod h1:jPlQfVHD4u0YRBx4DCufwvriNX8ykr+i4zqPMadgkAs=
 github.com/jmoiron/sqlx v1.4.0 h1:1PLqN7S1UYp5t4SrVVnt4nUVNemrDAtxlulVe+Qgm3o=
 github.com/jmoiron/sqlx v1.4.0/go.mod h1:ZrZ7UsYB/weZdl2Bxg6jCRO9c3YHl8r3ahlKmRT4JLY=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=

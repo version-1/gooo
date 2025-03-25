@@ -1,0 +1,22 @@
+package routes
+
+// This is a generated file. DO NOT EDIT manually.
+import (
+  {{ range .Dependencies }}
+  "{{ . }}"
+  {{ end }}
+)
+
+{{ .RouteHandlers }}
+
+func Routes() []route.HandlerInterface {
+  routes := route.GroupHandler{
+    Path: "/users",
+
+    Handlers: []route.HandlerInterface{
+      {{ .Routes }}
+    },
+  }
+
+  return routes.Children()
+}

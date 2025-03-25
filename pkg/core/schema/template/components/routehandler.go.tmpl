@@ -1,0 +1,6 @@
+func {{ .FuncName }}Handler() route.HandlerInterface {
+	return route.JSON[{{.InputType}}, {{.OutputType}}]().Get("{{.Path}}", func(res *response.Response[{{ .OutputType }}], req *request.Request[{{ .InputType }}]) {
+    {{ .FuncName }}(res, req)
+	})
+}
+
